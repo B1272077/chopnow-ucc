@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChopNow UCC — Fast-Lane Campus Pre-Order</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ea580c" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Clean Production Header (NO Role Switcher Tabs!) -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center font-extrabold text-xl shadow">
+          🍲
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg tracking-tight">ChopNow</h1>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30">
+              UCC Campus
+            </span>
+            <span id="cloud-status-pill" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              ● Connecting...
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Fast-Lane Canteen Pre-Order &amp; Pickup</p>
+        </div>
+      </div>
+
+      <!-- Active Session Badge & Sign Out (Hidden until signed in) -->
+      <div id="header-session-controls" class="hidden flex items-center gap-2">
+        <span id="header-role-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-slate-800 text-amber-300 border border-slate-700"></span>
+        <button id="btn-global-logout" type="button" class="px-3.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition">
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1">
+
+    <!-- ==========================================
+         UNIFIED SINGLE LOGIN GATEWAY
+         ========================================== -->
+    <section id="unified-login-screen" class="max-w-md mx-auto mt-4 bg-white rounded-3xl border border-slate-200 p-6 shadow-lg space-y-5">
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl font-bold">🍲</div>
+        <h2 class="text-xl font-extrabold text-slate-900 pt-1">Sign In to ChopNow</h2>
+        <p class="text-xs text-slate-500">Enter your UCC Index Number or Account ID to continue.</p>
+      </div>
+
+      <!-- Step 1: Enter Username / ID -->
+      <div id="login-step-1" class="space-y-3">
+        <div>
+          <label for="unified-id-input" class="block text-xs font-bold text-slate-700 mb-1">Index Number / Account ID</label>
+          <input id="unified-id-input" type="text" placeholder="e.g. PS/CSC/24/0234" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-orange-500" />
+        </div>
+        <div id="step1-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"></div>
+        <button id="btn-unified-continue" type="button" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow transition">
+          Continue →
+        </button>
+      </div>
+
+      <!-- Step 2A: Student Verification (Detected Student) -->
+      <div id="login-step-student" class="hidden space-y-3">
+        <div class="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-xs">
+          <span>Student ID: <b id="detected-stu-id" class="font-mono text-orange-900"></b></span>
+          <button type="button" class="btn-back-step1 text-orange-700 font-bold hover:underline">Change</button>
+        </div>
+        <div>
+          <label for="stu-email-input" class="block text-xs font-bold text-slate-700 mb-1">UCC Student Email</label>
+          <div class="flex gap-2">
+            <input id="stu-email-input" type="email" placeholder="name@stu.ucc.edu.gh" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+            <button id="btn-send-stu-otp" type="button" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0 transition">
+              Send Code
+            </button>
+          </div>
+        </div>
+        <div id="stu-otp-section" class="hidden space-y-2">
+          <label for="stu-otp-input" class="block text-xs font-bold text-slate-700">Email Verification Code (Optional if Link Clicked)</label>
+          <input id="stu-otp-input" type="text" placeholder="Enter 6-digit code if shown" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500" />
+          <p id="stu-otp-hint" class="text-[11px] text-emerald-700 font-mono"></p>
+        </div>
+        <div id="stu-login-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"></div>
+        <button id="btn-stu-login" type="button" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow transition">
+          Verify &amp; Enter App
+        </button>
+      </div>
+
+      <!-- Step 2B: Vendor Verification (Detected Vendor) -->
+      <div id="login-step-vendor" class="hidden space-y-3">
+        <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs">
+          <span>Vendor Account: <b id="detected-ven-id" class="font-mono text-emerald-900"></b></span>
+          <button type="button" class="btn-back-step1 text-emerald-700 font-bold hover:underline">Change</button>
+        </div>
+        <div id="ven-pass-box" class="space-y-3">
+          <div>
+            <label for="ven-pass-input" class="block text-xs font-bold text-slate-700 mb-1">Vendor Passcode</label>
+            <input id="ven-pass-input" type="password" placeholder="••••" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div id="ven-login-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"></div>
+          <button id="btn-ven-login" type="button" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow transition">
+            Sign In to Kitchen
+          </button>
+          <div class="text-right">
+            <button id="btn-ven-forgot-toggle" type="button" class="text-xs font-bold text-orange-600 hover:underline">Forgot Passcode? Reset via SMS OTP</button>
+          </div>
+        </div>
+        <div id="vendor-otp-form" class="hidden space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-slate-900">Reset Passcode via SMS OTP</span>
+            <button id="btn-ven-back-login" type="button" class="text-xs font-bold text-slate-500 hover:underline">← Back</button>
+          </div>
+          <button id="btn-send-ven-otp" type="button" class="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Send SMS OTP to Registered Phone</button>
+          <p id="ven-otp-banner" class="text-[11px] font-mono font-bold text-emerald-700"></p>
+          <input id="ven-otp-code" type="text" placeholder="6-digit SMS OTP" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono font-bold" />
+          <input id="ven-new-pass" type="password" placeholder="New Passcode" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono" />
+          <button id="btn-confirm-ven-reset" type="button" class="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold">Update Passcode</button>
+        </div>
+      </div>
+
+      <!-- Step 2C: Admin Verification (Detected Admin) -->
+      <div id="login-step-admin" class="hidden space-y-3">
+        <div class="flex items-center justify-between bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs">
+          <span>Administrator: <b id="detected-adm-id" class="font-mono text-slate-900"></b></span>
+          <button type="button" class="btn-back-step1 text-slate-700 font-bold hover:underline">Change</button>
+        </div>
+        <div id="adm-pass-box" class="space-y-3">
+          <div>
+            <label for="adm-pass-input" class="block text-xs font-bold text-slate-700 mb-1">Admin Password</label>
+            <input id="adm-pass-input" type="password" placeholder="••••••••" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-slate-900" />
+          </div>
+          <div id="adm-login-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"></div>
+          <button id="btn-adm-login" type="button" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow transition">
+            Sign In to Control Center
+          </button>
+          <div class="text-right">
+            <button id="btn-adm-forgot-toggle" type="button" class="text-xs font-bold text-orange-600 hover:underline">Reset Admin Password</button>
+          </div>
+        </div>
+        <div id="admin-reset-form" class="hidden space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-slate-900">Admin 2FA Password Reset</span>
+            <button id="btn-adm-back-login" type="button" class="text-xs font-bold text-slate-500 hover:underline">← Back</button>
+          </div>
+          <button id="btn-send-adm-otp" type="button" class="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Send 2FA OTP</button>
+          <p id="adm-otp-banner" class="text-[11px] font-mono font-bold text-emerald-700"></p>
+          <input id="adm-otp-code" type="text" placeholder="6-digit OTP" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono font-bold" />
+          <input id="adm-new-pass" type="password" placeholder="New Password" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono" />
+          <button id="btn-confirm-adm-reset" type="button" class="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold">Reset Password</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STUDENT WORKSPACE
+         ========================================== -->
+    <section id="student-workspace" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
+          <div>
+            <label for="joint-select" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              1. Choose Campus Vendor
+            </label>
+            <select id="joint-select" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"></select>
+          </div>
+
+          <div id="joint-info-badge" class="bg-orange-50 border border-orange-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"></div>
+
+          <div class="space-y-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">2. Select Base Meal</span>
+            <div id="base-meals-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">3. Add Proteins &amp; Sides (Select Quantity)</span>
+              <button id="btn-clear-addons" type="button" class="text-xs text-orange-600 font-bold hover:underline">Clear</button>
+            </div>
+            <div id="addons-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-700">Your Plate:</span>
+              <span id="summary-total-calc" class="font-extrabold text-orange-700">GH₵ 0.00</span>
+            </div>
+            <div id="summary-plate-text" class="text-slate-600 font-medium"></div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">4. Pickup Window &amp; Payment</h3>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">5-Min Turnaround</span>
+            </div>
+
+            <div>
+              <label for="slot-select" class="block text-xs font-semibold text-slate-600 mb-1">Lecture Break Slot (Per Vendor)</label>
+              <select id="slot-select" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"></select>
+            </div>
+
+            <div id="slot-capacity-status" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs"></div>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-semibold text-slate-600">Mobile Money Network</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="pay-mtn" class="pay-net-btn py-2 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-bold text-xs">🟡 MTN MoMo</button>
+                <button type="button" id="pay-telecel" class="pay-net-btn py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs">🔴 Telecel Cash</button>
+              </div>
+              <input id="stu-momo-phone" type="tel" maxlength="10" placeholder="Enter 10-digit MoMo / Telecel Number (e.g. 0539262509)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-800" />
+              <p id="stu-momo-error" class="hidden text-[11px] font-bold text-rose-600"></p>
+            </div>
+
+            <div class="border-t border-slate-200 pt-3 flex items-center justify-between">
+              <div>
+                <span class="text-xs text-slate-500 block">Total Amount</span>
+                <span id="checkout-price-display" class="text-xl font-extrabold text-slate-900">GH₵ 0.00</span>
+              </div>
+              <button id="btn-confirm-order" type="button" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow transition">
+                Pay &amp; Order
+              </button>
+            </div>
+          </div>
+
+          <div id="active-token-box" class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 space-y-3 shadow-lg"></div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5">
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Rate Your Experience</h4>
+            <div class="flex gap-2">
+              <select id="fb-rating" class="rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs font-semibold bg-slate-50">
+                <option value="5 ⭐">5 ⭐</option>
+                <option value="4 ⭐">4 ⭐</option>
+                <option value="3 ⭐">3 ⭐</option>
+                <option value="2 ⭐">2 ⭐</option>
+              </select>
+              <input id="fb-comment" type="text" placeholder="Share feedback with campus admin..." class="w-full rounded-xl border border-slate-300 px-3 py-1.5 text-xs" />
+              <button id="btn-send-feedback" type="button" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VENDOR WORKSPACE
+         ========================================== -->
+    <section id="vendor-workspace" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="ven-status-pill" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">● OPEN</span>
+            <span id="ven-session-id" class="text-xs font-mono text-slate-500"></span>
+          </div>
+          <h2 id="ven-session-name" class="text-lg font-extrabold text-slate-900 mt-1"></h2>
+          <p class="text-xs text-slate-500">Settlement: <b>0539262509</b> • Stock toggles apply strictly to your shop.</p>
+        </div>
+        <button id="btn-toggle-shop-open" type="button" class="px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs transition self-start sm:self-center">
+          Toggle Open / Closed
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">➕ Request New Menu Item</h3>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">Admin Approval</span>
+            </div>
+            <div class="space-y-2.5">
+              <select id="new-item-type" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold bg-slate-50">
+                <option value="base">Base Meal</option>
+                <option value="addon">Add-on / Side</option>
+              </select>
+              <div class="flex gap-2">
+                <input id="new-item-name" type="text" placeholder="Item name" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs" />
+                <input id="new-item-price" type="number" step="0.5" placeholder="GH₵" class="w-24 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold" />
+              </div>
+              <button id="btn-add-menu-item" type="button" class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">Submit for Admin Approval</button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">🍽️ Your Shop Stock &amp; Prices</h3>
+            <div class="space-y-2">
+              <span class="text-xs font-bold text-slate-500 block">Base Meal(s)</span>
+              <div id="ven-base-controls" class="space-y-2"></div>
+            </div>
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+              <span class="text-xs font-bold text-slate-500 block">Add-Ons ("In Stock" / "Finished")</span>
+              <div id="ven-addon-controls" class="space-y-1.5 max-h-64 overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
+          <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-extrabold text-sm text-slate-900">🔐 Pickup Token Verification</h3>
+                <p class="text-xs text-slate-600">Verifying a token marks the order Collected and frees a slot.</p>
+              </div>
+              <span id="rate-limit-display" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">Attempts: 0 / 3</span>
+            </div>
+            <div class="flex flex-wrap sm:flex-nowrap gap-2">
+              <input id="vendor-token-input" type="text" placeholder="CN-0000" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-mono font-extrabold uppercase tracking-widest" />
+              <button id="btn-verify-handover" type="button" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shrink-0">Verify &amp; Handover</button>
+            </div>
+            <div id="vendor-verify-message" class="hidden text-xs font-semibold px-3 py-2 rounded-xl"></div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Kitchen Orders</h3>
+              <span id="vendor-active-count" class="text-xs font-bold text-orange-700"></span>
+            </div>
+            <div id="vendor-queue-list" class="space-y-3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         ADMIN WORKSPACE
+         ========================================== -->
+    <section id="admin-workspace" class="hidden space-y-6">
+      <div class="bg-slate-900 text-white rounded-2xl p-5 shadow">
+        <span id="adm-session-role" class="text-xs font-bold uppercase tracking-wider text-amber-400">System Administrator</span>
+        <h2 class="text-lg font-extrabold">ChopNow Campus Control Center</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs font-semibold text-slate-500">Pending Approvals</span>
+          <div id="adm-kpi-pending" class="text-2xl font-extrabold text-orange-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs font-semibold text-slate-500">Total Orders</span>
+          <div id="adm-kpi-orders" class="text-2xl font-extrabold text-slate-900 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs font-semibold text-slate-500">Settled Volume</span>
+          <div id="adm-kpi-revenue" class="text-2xl font-extrabold text-emerald-700 mt-1">GH₵ 0.00</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs font-semibold text-slate-500">Open Feedback</span>
+          <div id="adm-kpi-feedback" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border-2 border-orange-200 p-5 shadow-sm space-y-3">
+        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-900">⚖️ Maker-Checker: Pending Vendor Edit Approvals</h3>
+        <div id="adm-pending-edits-list" class="space-y-2.5 text-xs"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-900">🏪 Campus Vendors &amp; Settlement</h3>
+          <div id="adm-vendor-list" class="space-y-2.5 text-xs"></div>
+        </div>
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-900">💬 Student Feedback</h3>
+          <div id="adm-feedback-list" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-slate-200 rounded-2xl p-4 space-y-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-orange-400 block">🛡️ Security &amp; Audit Log</span>
+        <div id="audit-log-container" class="space-y-1 text-xs font-mono max-h-44 overflow-y-auto"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Minimal Production Footer (No Presenter Helper / No Cloud Inputs!) -->
+  <footer class="border-t border-slate-200 bg-white px-4 py-3 text-xs text-slate-400 text-center">
+    ChopNow UCC • Fast-Lane Campus Pre-Order System
+  </footer>
+
+  <script>
+    // PRE-CONFIGURED LIVE SUPABASE CONNECTION (PUBLISHABLE KEY ONLY)
+    const SUPABASE_URL = 'https://evrfietzptdjcwkhtyxk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_54eUN_WQC1W4XQul6kNTbA_V7yaw5h6';
+    let sbClient = null;
+
+    const BASE_TEMPLATES = {
+      b_waakye: { id: 'b_waakye', name: 'Base Waakye + Stew + Shito', price: 10.00, inStock: true },
+      b_jollof: { id: 'b_jollof', name: 'Base Jollof Rice + Sauce', price: 12.00, inStock: true },
+      b_gobe: { id: 'b_gobe', name: 'Base Gobɛ (Beans + Gari + Oil)', price: 10.00, inStock: true },
+      b_friedrice: { id: 'b_friedrice', name: 'Base Fried Rice', price: 15.00, inStock: true }
+    };
+
+    const DEFAULT_ADDONS = [
+      { id: 'a_wele', name: 'Wele', price: 5.00, icon: '🥩', inStock: true },
+      { id: 'a_egg', name: 'Boiled Egg', price: 3.50, icon: '🥚', inStock: true },
+      { id: 'a_plantain', name: 'Fried Ripe Plantain', price: 2.00, icon: '🍌', inStock: true },
+      { id: 'a_fish', name: 'Fried Fish / Tilapia', price: 10.00, icon: '🐟', inStock: true },
+      { id: 'a_chicken', name: 'Fried Chicken', price: 10.00, icon: '🍗', inStock: true },
+      { id: 'a_sausage', name: 'Sausage', price: 3.00, icon: '🌭', inStock: true },
+      { id: 'a_spaghetti', name: 'Spaghetti', price: 2.00, icon: '🍝', inStock: true },
+      { id: 'a_gari', name: 'Gari', price: 2.00, icon: '🥣', inStock: true },
+      { id: 'a_salad', name: 'Salad', price: 2.00, icon: '🥗', inStock: true }
+    ];
+
+    function cloneAddons() { return DEFAULT_ADDONS.map(a => ({ ...a })); }
+
+    const VENDORS = [
+      { id: 'SALAMATU-01', passcode: '1122', name: "Salamatu's Special Waakye", zone: 'CODE Market', location: 'CODE Market — Closer to NLT, CODE & CALC (~5 min walk)', phone: '0539262509', isOpen: true, baseMeals: [{ ...BASE_TEMPLATES.b_waakye }], addons: cloneAddons(), slots: { slot1: 0, slot2: 0, slot3: 0, slot4: 0 } },
+      { id: 'BECKY-02', passcode: '2233', name: "Becky's Waakye", zone: 'CODE Market', location: 'CODE Market — Closer to NLT, CODE & CALC (~5 min walk)', phone: '0539262509', isOpen: true, baseMeals: [{ ...BASE_TEMPLATES.b_waakye }], addons: cloneAddons(), slots: { slot1: 0, slot2: 0, slot3: 0, slot4: 0 } },
+      { id: 'AMA-03', passcode: '3344', name: "Auntie Ama's Jollof & Fried Rice", zone: 'Science Market', location: 'Science Market — Closer to LT & Science Complex (~10 min walk)', phone: '0539262509', isOpen: true, baseMeals: [{ ...BASE_TEMPLATES.b_jollof }, { ...BASE_TEMPLATES.b_friedrice }], addons: cloneAddons(), slots: { slot1: 0, slot2: 0, slot3: 0, slot4: 0 } },
+      { id: 'ADWOA-04', passcode: '4455', name: "Auntie Adwoa's Classic Gobɛ", zone: 'Science Market', location: 'Science Market — Closer to LT & Science Complex (~10 min walk)', phone: '0539262509', isOpen: true, baseMeals: [{ ...BASE_TEMPLATES.b_gobe }], addons: cloneAddons(), slots: { slot1: 0, slot2: 0, slot3: 0, slot4: 0 } },
+      { id: 'JANE-05', passcode: '5566', name: "Madam Jane's Special Waakye", zone: 'Ayensu Roadside', location: 'Ayensu Roadside — Closer to SWLT & near Ayensu Plaza (~10 min walk)', phone: '0539262509', isOpen: true, baseMeals: [{ ...BASE_TEMPLATES.b_waakye }], addons: cloneAddons(), slots: { slot1: 0, slot2: 0, slot3: 0, slot4: 0 } }
+    ];
+
+    const ADMINS = [
+      { id: 'ADMIN-G36', passcode: 'G36@2026', role: 'Lead System Admin' },
+      { id: 'ADMIN-0234', passcode: 'UCC@0234', role: 'Operations & Audit Admin' }
+    ];
+
+    const SLOT_WINDOWS = [
+      { key: 'slot1', label: '12:30 PM – 12:45 PM (5-min buffer after)', max: 15 },
+      { key: 'slot2', label: '12:50 PM – 1:05 PM (5-min buffer after)', max: 15 },
+      { key: 'slot3', label: '1:10 PM – 1:25 PM (5-min buffer after)', max: 15 },
+      { key: 'slot4', label: '1:30 PM – 1:45 PM (Afternoon Batch)', max: 15 }
+    ];
+
+    let pendingIdInput = '';
+    let loggedInStudent = null;
+    let loggedInVendorId = null;
+    let loggedInAdmin = null;
+    let generatedStuOtp = null;
+    let generatedVenOtp = null;
+    let generatedAdmOtp = null;
+    let otpCooldownTimer = null;
+
+    let selectedVendorId = 'SALAMATU-01';
+    let selectedBaseId = null;
+    let selectedAddonQtys = {};
+    let selectedSlotKey = 'slot1';
+    let selectedPaymentNet = 'MTN MoMo';
+    let failedAttempts = 0;
+
+    let pendingEdits = [];
+    let orders = [];
+    let feedbacks = [];
+    let auditLogs = [];
+
+    function showToast(msg, type = 'info') {
+      const c = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-600' : type === 'success' ? 'bg-emerald-600' : 'bg-slate-900';
+      el.className = `${bg} text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg border border-white/10 pointer-events-auto`;
+      el.textContent = msg;
+      c.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    async function addAuditLog(entry) {
+      const line = `[${new Date().toTimeString().slice(0, 8)}] ${entry}`;
+      auditLogs.unshift(line);
+      renderAuditLogs();
+      if (sbClient) {
+        try { await sbClient.from('audit_logs').insert({ event_text: line }); } catch (e) {}
+      }
+    }
+
+    function startOtpCooldown() {
+      if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+      const btn = document.getElementById('btn-send-stu-otp');
+      let remaining = 120;
+      btn.disabled = true;
+      btn.className = 'px-3 py-2 rounded-xl bg-slate-400 text-white text-xs font-bold shrink-0 cursor-not-allowed';
+      btn.textContent = `Resend (${remaining}s)`;
+      otpCooldownTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(otpCooldownTimer);
+          otpCooldownTimer = null;
+          btn.disabled = false;
+          btn.className = 'px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0 transition';
+          btn.textContent = 'Send Code';
+        } else {
+          btn.textContent = `Resend (${remaining}s)`;
+        }
+      }, 1000);
+    }
+
+    function calculateTotalPrice(vendor) {
+      const base = selectedBaseId ? vendor.baseMeals.find(b => b.id === selectedBaseId) : null;
+      let total = base ? base.price : 0;
+      Object.entries(selectedAddonQtys).forEach(([id, qty]) => {
+        if (qty > 0) {
+          const a = vendor.addons.find(x => x.id === id);
+          if (a && a.inStock) total += a.price * qty;
+        }
+      });
+      return total;
+    }
+
+    function updateActiveScreen() {
+      const loginEl = document.getElementById('unified-login-screen');
+      const stuEl = document.getElementById('student-workspace');
+      const venEl = document.getElementById('vendor-workspace');
+      const admEl = document.getElementById('admin-workspace');
+      const headerCtrl = document.getElementById('header-session-controls');
+      const roleBadge = document.getElementById('header-role-badge');
+
+      loginEl.classList.add('hidden');
+      stuEl.classList.add('hidden');
+      venEl.classList.add('hidden');
+      admEl.classList.add('hidden');
+      headerCtrl.classList.add('hidden');
+
+      if (loggedInStudent) {
+        stuEl.classList.remove('hidden');
+        headerCtrl.classList.remove('hidden');
+        roleBadge.textContent = `🎓 Student • ${loggedInStudent.index}`;
+        renderStudentWorkspace();
+      } else if (loggedInVendorId) {
+        venEl.classList.remove('hidden');
+        headerCtrl.classList.remove('hidden');
+        roleBadge.textContent = `👩‍🍳 Vendor • ${loggedInVendorId}`;
+        renderVendorWorkspace();
+      } else if (loggedInAdmin) {
+        admEl.classList.remove('hidden');
+        headerCtrl.classList.remove('hidden');
+        roleBadge.textContent = `🛡️ Admin • ${loggedInAdmin.id}`;
+        renderAdminWorkspace();
+      } else {
+        loginEl.classList.remove('hidden');
+      }
+    }
+
+    function renderStudentWorkspace() {
+      const sel = document.getElementById('joint-select');
+      sel.innerHTML = '';
+      VENDORS.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = `${v.isOpen ? '🟢' : '🔴 [CLOSED]'} ${v.name} — ${v.zone}`;
+        if (v.id === selectedVendorId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+
+      const vendor = VENDORS.find(v => v.id === selectedVendorId) || VENDORS[0];
+      if (selectedBaseId !== null && !vendor.baseMeals.some(b => b.id === selectedBaseId)) selectedBaseId = null;
+
+      document.getElementById('joint-info-badge').innerHTML = `
+        <div class="space-y-0.5">
+          <div class="font-bold text-slate-900">📍 ${vendor.location}</div>
+          <div class="text-[11px] text-orange-800">Status: <b class="${vendor.isOpen ? 'text-emerald-700' : 'text-rose-700'}">${vendor.isOpen ? 'OPEN' : 'CLOSED'}</b></div>
+        </div>
+        <span class="text-[11px] font-extrabold uppercase px-2 py-1 rounded bg-orange-200/60 text-orange-950 shrink-0">${vendor.zone}</span>
+      `;
+
+      const baseBox = document.getElementById('base-meals-container');
+      baseBox.innerHTML = '';
+      vendor.baseMeals.forEach(base => {
+        const isSel = base.id === selectedBaseId;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.disabled = !base.inStock;
+        btn.className = `p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+          !base.inStock ? 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
+          : isSel ? 'border-2 border-orange-600 bg-orange-50/80 shadow-sm'
+          : 'border-slate-200 bg-white hover:border-slate-300'
+        }`;
+        btn.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-xs sm:text-sm text-slate-900">${base.name}</span>
+            <span class="font-extrabold text-xs text-orange-700 shrink-0">GH₵ ${base.price.toFixed(2)}</span>
+          </div>
+          <div class="mt-2 text-right text-[10px] font-bold ${!base.inStock ? 'text-rose-600' : isSel ? 'text-orange-600' : 'text-slate-400'}">
+            ${!base.inStock ? 'SOLD OUT' : isSel ? '● Selected' : 'Tap to Select'}
+          </div>
+        `;
+        btn.addEventListener('click', () => { selectedBaseId = base.id; renderStudentWorkspace(); });
+        baseBox.appendChild(btn);
+      });
+
+      const addonBox = document.getElementById('addons-container');
+      addonBox.innerHTML = '';
+      vendor.addons.forEach(addon => {
+        if (!addon.inStock && selectedAddonQtys[addon.id]) delete selectedAddonQtys[addon.id];
+        const qty = selectedAddonQtys[addon.id] || 0;
+        const card = document.createElement('div');
+        card.className = `p-2.5 rounded-xl border text-xs font-semibold flex flex-col justify-between gap-2 select-none ${
+          !addon.inStock ? 'border-slate-200 bg-slate-100 text-slate-400 opacity-60'
+          : qty > 0 ? 'border-orange-500 bg-orange-50 text-orange-950 shadow-sm'
+          : 'border-slate-200 bg-white text-slate-700'
+        }`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-1">
+            <span>${addon.icon} ${addon.name}</span>
+            <span class="text-[11px] font-bold shrink-0">${!addon.inStock ? 'Finished' : '+GH₵ ' + addon.price.toFixed(2)}</span>
+          </div>
+          ${!addon.inStock ? '<span class="text-[10px] font-bold text-rose-600">Sold Out</span>' :
+            qty === 0
+              ? `<button type="button" data-qty-add="${addon.id}" class="w-full py-1 rounded-lg bg-slate-100 hover:bg-orange-100 text-slate-800 font-bold text-[11px] transition">+ Add (1)</button>`
+              : `<div class="flex items-center justify-between bg-white border border-orange-300 rounded-lg px-1.5 py-0.5">
+                  <button type="button" data-qty-dec="${addon.id}" class="w-6 h-6 rounded bg-orange-100 hover:bg-orange-200 text-orange-900 font-extrabold">−</button>
+                  <span class="font-mono font-extrabold text-xs text-slate-900">${qty}</span>
+                  <button type="button" data-qty-inc="${addon.id}" class="w-6 h-6 rounded bg-orange-600 hover:bg-orange-700 text-white font-extrabold">+</button>
+                </div>`
+          }
+        `;
+        addonBox.appendChild(card);
+      });
+
+      addonBox.querySelectorAll('button[data-qty-add]').forEach(btn => {
+        btn.addEventListener('click', () => { selectedAddonQtys[btn.getAttribute('data-qty-add')] = 1; renderStudentWorkspace(); });
+      });
+      addonBox.querySelectorAll('button[data-qty-inc]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-qty-inc');
+          selectedAddonQtys[id] = (selectedAddonQtys[id] || 0) + 1;
+          renderStudentWorkspace();
+        });
+      });
+      addonBox.querySelectorAll('button[data-qty-dec]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-qty-dec');
+          const next = (selectedAddonQtys[id] || 0) - 1;
+          if (next <= 0) delete selectedAddonQtys[id];
+          else selectedAddonQtys[id] = next;
+          renderStudentWorkspace();
+        });
+      });
+
+      const total = calculateTotalPrice(vendor);
+      const chosenBase = selectedBaseId ? vendor.baseMeals.find(b => b.id === selectedBaseId) : null;
+      document.getElementById('checkout-price-display').textContent = `GH₵ ${total.toFixed(2)}`;
+      document.getElementById('summary-total-calc').textContent = `GH₵ ${total.toFixed(2)}`;
+      const addonNames = [];
+      Object.entries(selectedAddonQtys).forEach(([id, qty]) => {
+        if (qty > 0) {
+          const a = vendor.addons.find(x => x.id === id);
+          if (a) addonNames.push(`${qty}x ${a.name} (+GH₵ ${(a.price * qty).toFixed(2)})`);
+        }
+      });
+      document.getElementById('summary-plate-text').innerHTML = !chosenBase
+        ? '<span class="text-slate-400">Select a base meal above to start building your plate.</span>'
+        : addonNames.length ? `<b>${chosenBase.name}</b> + ${addonNames.join(', ')}` : `<b>${chosenBase.name}</b> (No extra add-ons)`;
+
+      const slotSel = document.getElementById('slot-select');
+      slotSel.innerHTML = '';
+      SLOT_WINDOWS.forEach(sw => {
+        const count = vendor.slots[sw.key] || 0;
+        const opt = document.createElement('option');
+        opt.value = sw.key;
+        opt.textContent = `${sw.label} [${count}/${sw.max}${count >= sw.max ? ' FULL' : ''}]`;
+        if (sw.key === selectedSlotKey) opt.selected = true;
+        slotSel.appendChild(opt);
+      });
+
+      const activeSlotObj = SLOT_WINDOWS.find(s => s.key === selectedSlotKey);
+      const currentCount = vendor.slots[selectedSlotKey] || 0;
+      const isFull = currentCount >= activeSlotObj.max;
+      const pct = Math.min(100, Math.round((currentCount / activeSlotObj.max) * 100));
+      const nextOpenSlot = SLOT_WINDOWS.find(s => (vendor.slots[s.key] || 0) < s.max);
+
+      document.getElementById('slot-capacity-status').innerHTML = `
+        <div class="flex items-center justify-between font-semibold">
+          <span>${vendor.name.split("'")[0]} Slot Load:</span>
+          <span class="${isFull ? 'text-rose-700 font-bold' : 'text-slate-700'}">${currentCount} / ${activeSlotObj.max} booked</span>
+        </div>
+        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+          <div class="${isFull ? 'bg-rose-600' : currentCount >= 12 ? 'bg-amber-500' : 'bg-emerald-500'} h-full rounded-full" style="width:${pct}%"></div>
+        </div>
+        ${isFull && nextOpenSlot ? `<p class="text-[11px] text-orange-700 font-bold">⏳ Slot full. Next 5-min turnaround slot open: ${nextOpenSlot.label}</p>` : ''}
+      `;
+
+      const confirmBtn = document.getElementById('btn-confirm-order');
+      if (!vendor.isOpen || !chosenBase || !chosenBase.inStock || isFull) {
+        confirmBtn.disabled = true;
+        confirmBtn.className = 'px-4 py-2.5 bg-slate-400 text-white font-bold text-sm rounded-xl cursor-not-allowed';
+        confirmBtn.textContent = !vendor.isOpen ? 'Vendor Closed' : !chosenBase ? 'Select Base Meal' : !chosenBase.inStock ? 'Sold Out' : 'Slot Full';
+      } else {
+        confirmBtn.disabled = false;
+        confirmBtn.className = 'px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow transition';
+        confirmBtn.textContent = 'Pay & Order';
+      }
+
+      const tBox = document.getElementById('active-token-box');
+      const myOrder = orders.find(o => o.studentIndex === loggedInStudent.index);
+      tBox.innerHTML = !myOrder
+        ? `<div class="text-xs text-slate-400">No active orders yet. Place a pre-order above to receive your pickup token.</div>`
+        : `
+          <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-orange-400 block">Active Pickup Token</span>
+              <span class="text-xs font-semibold text-slate-300">${myOrder.vendorName}</span>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">● ${myOrder.status}</span>
+          </div>
+          <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-700">
+            <span class="text-[11px] text-slate-400 block">Present at fast-lane counter:</span>
+            <span class="text-3xl font-mono font-extrabold text-amber-400 tracking-widest">${myOrder.token}</span>
+            <span class="text-xs text-slate-300 block mt-0.5">${myOrder.baseName}</span>
+            <span class="text-[11px] text-slate-400 block">${myOrder.addonsText}</span>
+          </div>
+          <div class="text-[11px] text-slate-400 flex justify-between">
+            <span>Paid via <b>${myOrder.network}</b></span>
+            <span>Total: <b class="text-emerald-400">GH₵ ${myOrder.price.toFixed(2)}</b></span>
+          </div>
+        `;
+    }
+
+    function renderVendorWorkspace() {
+      const vendor = VENDORS.find(v => v.id === loggedInVendorId);
+      document.getElementById('ven-session-id').textContent = vendor.id;
+      document.getElementById('ven-session-name').textContent = vendor.name;
+      const pill = document.getElementById('ven-status-pill');
+      pill.textContent = vendor.isOpen ? '● OPEN' : '● CLOSED';
+      pill.className = vendor.isOpen ? 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800' : 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800';
+
+      const baseCtrl = document.getElementById('ven-base-controls');
+      baseCtrl.innerHTML = '';
+      vendor.baseMeals.forEach(b => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2 text-xs';
+        row.innerHTML = `
+          <div class="font-bold text-slate-800">${b.name}</div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <input type="number" step="0.5" value="${b.price.toFixed(2)}" data-base-price="${b.id}" class="w-16 rounded-lg border border-slate-300 px-1.5 py-1 text-xs font-mono font-bold bg-white" />
+            <button type="button" data-base-stock="${b.id}" class="px-2 py-1 rounded-lg font-bold text-[11px] ${b.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${b.inStock ? 'In Stock' : 'Finished'}</button>
+          </div>
+        `;
+        baseCtrl.appendChild(row);
+      });
+
+      baseCtrl.querySelectorAll('input[data-base-price]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const b = vendor.baseMeals.find(x => x.id === inp.getAttribute('data-base-price'));
+          const val = parseFloat(inp.value);
+          if (b && val > 0 && val !== b.price) {
+            pendingEdits.unshift({ id: `EDIT-${Math.floor(100 + Math.random() * 900)}`, vendorId: vendor.id, vendorName: vendor.name, editType: 'PRICE_CHANGE', targetType: 'base', targetId: b.id, itemName: b.name, oldPrice: b.price, newPrice: val, status: 'PENDING' });
+            inp.value = b.price.toFixed(2);
+            addAuditLog(`MAKER_CHECKER: ${vendor.id} requested price edit on ${b.name} (GH₵ ${b.price.toFixed(2)} -> ${val.toFixed(2)}).`);
+            showToast('Price edit sent to Admin for approval!', 'info');
+          }
+        });
+      });
+
+      baseCtrl.querySelectorAll('button[data-base-stock]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const b = vendor.baseMeals.find(x => x.id === btn.getAttribute('data-base-stock'));
+          if (b) { b.inStock = !b.inStock; renderVendorWorkspace(); }
+        });
+      });
+
+      const addonCtrl = document.getElementById('ven-addon-controls');
+      addonCtrl.innerHTML = '';
+      vendor.addons.forEach(a => {
+        const row = document.createElement('div');
+        row.className = 'p-2 rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-2 text-xs';
+        row.innerHTML = `
+          <span class="font-semibold">${a.icon} ${a.name}</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <input type="number" step="0.5" value="${a.price.toFixed(2)}" data-addon-price="${a.id}" class="w-14 rounded-lg border border-slate-300 px-1.5 py-0.5 text-xs font-mono font-bold" />
+            <button type="button" data-addon-stock="${a.id}" class="px-2 py-0.5 rounded-lg font-bold text-[11px] ${a.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${a.inStock ? 'In Stock' : 'Finished'}</button>
+          </div>
+        `;
+        addonCtrl.appendChild(row);
+      });
+
+      addonCtrl.querySelectorAll('input[data-addon-price]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const a = vendor.addons.find(x => x.id === inp.getAttribute('data-addon-price'));
+          const val = parseFloat(inp.value);
+          if (a && val >= 0 && val !== a.price) {
+            pendingEdits.unshift({ id: `EDIT-${Math.floor(100 + Math.random() * 900)}`, vendorId: vendor.id, vendorName: vendor.name, editType: 'PRICE_CHANGE', targetType: 'addon', targetId: a.id, itemName: a.name, oldPrice: a.price, newPrice: val, status: 'PENDING' });
+            inp.value = a.price.toFixed(2);
+            addAuditLog(`MAKER_CHECKER: ${vendor.id} requested price edit on ${a.name} (GH₵ ${a.price.toFixed(2)} -> ${val.toFixed(2)}).`);
+            showToast('Price edit sent to Admin for approval!', 'info');
+          }
+        });
+      });
+
+      addonCtrl.querySelectorAll('button[data-addon-stock]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const a = vendor.addons.find(x => x.id === btn.getAttribute('data-addon-stock'));
+          if (a) { a.inStock = !a.inStock; renderVendorWorkspace(); }
+        });
+      });
+
+      const qList = document.getElementById('vendor-queue-list');
+      const myOrders = orders.filter(o => o.vendorId === vendor.id);
+      document.getElementById('vendor-active-count').textContent = `${myOrders.filter(o => o.status !== 'COLLECTED').length} Active`;
+      qList.innerHTML = myOrders.length ? '' : '<p class="text-xs text-slate-500">No orders in your queue yet.</p>';
+
+      myOrders.forEach(order => {
+        const row = document.createElement('div');
+        row.className = 'p-3.5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+        row.innerHTML = `
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-extrabold text-xs px-2 py-0.5 rounded bg-slate-900 text-amber-400">${order.token}</span>
+              <span class="text-xs font-bold text-slate-700">${order.status}</span>
+              <span class="text-xs text-slate-500">${order.studentIndex}</span>
+            </div>
+            <div class="font-bold text-xs sm:text-sm text-slate-900">${order.baseName}</div>
+            <div class="text-[11px] text-slate-600">${order.addonsText} • <b>GH₵ ${order.price.toFixed(2)}</b></div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${order.status !== 'COLLECTED' ? `
+              <button type="button" data-vact="prep" data-oid="${order.id}" class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">Preparing</button>
+              <button type="button" data-vact="ready" data-oid="${order.id}" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">Ready</button>
+            ` : '<span class="text-xs font-bold text-slate-500">✔ Collected</span>'}
+          </div>
+        `;
+        qList.appendChild(row);
+      });
+
+      qList.querySelectorAll('button[data-vact]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const act = btn.getAttribute('data-vact');
+          const o = orders.find(x => x.id === btn.getAttribute('data-oid'));
+          if (act === 'prep' && o) { o.status = 'PREPARING'; renderVendorWorkspace(); }
+          else if (act === 'ready' && o) { o.status = 'READY'; showToast(`Order ${o.token} marked READY!`, 'success'); renderVendorWorkspace(); }
+        });
+      });
+    }
+
+    function renderAdminWorkspace() {
+      document.getElementById('adm-session-role').textContent = `${loggedInAdmin.id} • ${loggedInAdmin.role}`;
+      document.getElementById('adm-kpi-pending').textContent = pendingEdits.filter(e => e.status === 'PENDING').length;
+      document.getElementById('adm-kpi-orders').textContent = orders.length;
+      document.getElementById('adm-kpi-revenue').textContent = `GH₵ ${orders.reduce((s, o) => s + o.price, 0).toFixed(2)}`;
+      document.getElementById('adm-kpi-feedback').textContent = feedbacks.filter(f => f.status === 'OPEN').length;
+
+      const pBox = document.getElementById('adm-pending-edits-list');
+      pBox.innerHTML = pendingEdits.length ? '' : '<p class="text-slate-500">No pending vendor edit requests.</p>';
+      pendingEdits.forEach(ed => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+        const desc = ed.editType === 'PRICE_CHANGE'
+          ? `Price change on <b>${ed.itemName}</b>: <span class="line-through text-slate-400">GH₵ ${ed.oldPrice.toFixed(2)}</span> → <b class="text-orange-700">GH₵ ${ed.newPrice.toFixed(2)}</b>`
+          : `New ${ed.targetType} item: <b>${ed.itemName}</b> at <b class="text-orange-700">GH₵ ${ed.newPrice.toFixed(2)}</b>`;
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-900">${ed.vendorName} <span class="font-mono text-[11px] text-slate-500">(${ed.vendorId})</span></div>
+            <div class="text-slate-700 mt-0.5">${desc}</div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${ed.status === 'PENDING' ? `
+              <button type="button" data-ed-act="approve" data-ed-id="${ed.id}" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold">Approve</button>
+              <button type="button" data-ed-act="reject" data-ed-id="${ed.id}" class="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold">Reject</button>
+            ` : `<span class="font-bold ${ed.status === 'APPROVED' ? 'text-emerald-700' : 'text-rose-700'}">${ed.status} by ${ed.reviewedBy}</span>`}
+          </div>
+        `;
+        pBox.appendChild(div);
+      });
+
+      pBox.querySelectorAll('button[data-ed-act]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const act = btn.getAttribute('data-ed-act');
+          const ed = pendingEdits.find(x => x.id === btn.getAttribute('data-ed-id'));
+          if (!ed) return;
+          const targetVendor = VENDORS.find(v => v.id === ed.vendorId);
+          if (act === 'approve' && targetVendor) {
+            ed.status = 'APPROVED';
+            ed.reviewedBy = loggedInAdmin.id;
+            if (ed.editType === 'PRICE_CHANGE') {
+              const list = ed.targetType === 'base' ? targetVendor.baseMeals : targetVendor.addons;
+              const item = list.find(x => x.id === ed.targetId);
+              if (item) item.price = ed.newPrice;
+            } else if (ed.editType === 'NEW_ITEM') {
+              if (ed.targetType === 'base') targetVendor.baseMeals.push({ id: `b_custom_${Date.now()}`, name: ed.itemName, price: ed.newPrice, inStock: true });
+              else targetVendor.addons.push({ id: `a_custom_${Date.now()}`, name: ed.itemName, price: ed.newPrice, icon: '🍽️', inStock: true });
+            }
+            addAuditLog(`ADMIN_APPROVED (${loggedInAdmin.id}): ${ed.vendorId} ${ed.itemName} -> GH₵ ${ed.newPrice.toFixed(2)}.`);
+            showToast(`Approved for ${targetVendor.name} only!`, 'success');
+          } else {
+            ed.status = 'REJECTED';
+            ed.reviewedBy = loggedInAdmin.id;
+            addAuditLog(`ADMIN_REJECTED (${loggedInAdmin.id}): Blocked ${ed.vendorId} edit on ${ed.itemName}.`);
+          }
+          renderAdminWorkspace();
+        });
+      });
+
+      const vBox = document.getElementById('adm-vendor-list');
+      vBox.innerHTML = '';
+      VENDORS.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between';
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-900">${v.name} <span class="font-mono text-[11px] text-slate-500">(${v.id})</span></div>
+            <div class="text-[11px] text-slate-500">${v.zone} • Payout: <b>${v.phone}</b></div>
+          </div>
+          <span class="px-2 py-0.5 rounded-full font-bold text-[11px] ${v.isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${v.isOpen ? 'OPEN' : 'CLOSED'}</span>
+        `;
+        vBox.appendChild(div);
+      });
+
+      const fBox = document.getElementById('adm-feedback-list');
+      fBox.innerHTML = feedbacks.length ? '' : '<p class="text-slate-500">No student feedback submitted yet.</p>';
+      feedbacks.forEach(fb => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2';
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-900">${fb.rating} • <span class="font-mono text-[11px] text-slate-500">${fb.student}</span></div>
+            <p class="text-slate-700 mt-0.5">${fb.text}</p>
+          </div>
+          ${fb.status === 'OPEN'
+            ? `<button type="button" data-resolve-fb="${fb.id}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shrink-0">Resolve</button>`
+            : `<span class="text-[11px] font-bold text-emerald-700 shrink-0">✔ Resolved</span>`
+          }
+        `;
+        fBox.appendChild(div);
+      });
+
+      fBox.querySelectorAll('button[data-resolve-fb]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const fb = feedbacks.find(x => x.id === btn.getAttribute('data-resolve-fb'));
+          if (fb) { fb.status = 'RESOLVED'; addAuditLog(`FEEDBACK_RESOLVED (${loggedInAdmin.id}): ${fb.id}`); renderAdminWorkspace(); }
+        });
+      });
+
+      renderAuditLogs();
+    }
+
+    function renderAuditLogs() {
+      const box = document.getElementById('audit-log-container');
+      if (!box) return;
+      box.innerHTML = auditLogs.length
+        ? auditLogs.map(line => `<div class="${line.includes('REJECTED') || line.includes('FAILED') ? 'text-rose-400 font-bold' : 'text-emerald-300'}">${line}</div>`).join('')
+        : '<div class="text-slate-500">No security events logged yet.</div>';
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Auto-connect Supabase on startup
+      if (window.supabase) {
+        try {
+          sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          const { error } = await sbClient.from('vendors').select('id').limit(1);
+          const pill = document.getElementById('cloud-status-pill');
+          if (!error) {
+            pill.textContent = '● Supabase Cloud Live';
+            pill.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+          } else {
+            pill.textContent = '● Local Mode';
+          }
+        } catch (e) {
+          document.getElementById('cloud-status-pill').textContent = '● Local Mode';
+        }
+      }
+
+      // Unified Login Step 1 -> Route by Role
+      document.getElementById('btn-unified-continue').addEventListener('click', () => {
+        const raw = document.getElementById('unified-id-input').value.trim().toUpperCase();
+        const err = document.getElementById('step1-error');
+        if (!raw) {
+          err.classList.remove('hidden');
+          err.textContent = 'Please enter your UCC Index Number or Account ID.';
+          return;
+        }
+        err.classList.add('hidden');
+        pendingIdInput = raw;
+        document.getElementById('login-step-1').classList.add('hidden');
+
+        if (ADMINS.some(a => a.id === raw)) {
+          document.getElementById('detected-adm-id').textContent = raw;
+          document.getElementById('login-step-admin').classList.remove('hidden');
+        } else if (VENDORS.some(v => v.id === raw)) {
+          document.getElementById('detected-ven-id').textContent = raw;
+          document.getElementById('login-step-vendor').classList.remove('hidden');
+        } else {
+          document.getElementById('detected-stu-id').textContent = raw;
+          document.getElementById('login-step-student').classList.remove('hidden');
+        }
+      });
+
+      document.querySelectorAll('.btn-back-step1').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('login-step-student').classList.add('hidden');
+          document.getElementById('login-step-vendor').classList.add('hidden');
+          document.getElementById('login-step-admin').classList.add('hidden');
+          document.getElementById('login-step-1').classList.remove('hidden');
+        });
+      });
+
+      document.getElementById('btn-global-logout').addEventListener('click', () => {
+        loggedInStudent = null;
+        loggedInVendorId = null;
+        loggedInAdmin = null;
+        document.getElementById('unified-id-input').value = '';
+        document.getElementById('login-step-student').classList.add('hidden');
+        document.getElementById('login-step-vendor').classList.add('hidden');
+        document.getElementById('login-step-admin').classList.add('hidden');
+        document.getElementById('login-step-1').classList.remove('hidden');
+        updateActiveScreen();
+      });
+
+      // Student Verification
+      document.getElementById('btn-send-stu-otp').addEventListener('click', async () => {
+        const email = document.getElementById('stu-email-input').value.trim().toLowerCase();
+        const err = document.getElementById('stu-login-error');
+        if (!email.endsWith('@stu.ucc.edu.gh')) {
+          err.classList.remove('hidden');
+          err.textContent = '🚫 Only @stu.ucc.edu.gh student emails are permitted.';
+          addAuditLog(`AUTH_REJECTED: Blocked non-UCC email (${email || 'empty'}).`);
+          return;
+        }
+        err.classList.add('hidden');
+        document.getElementById('stu-otp-section').classList.remove('hidden');
+        startOtpCooldown();
+        if (sbClient) {
+          document.getElementById('stu-otp-hint').textContent = `Sending confirmation email to ${email}...`;
+          try {
+            const redirectTo = window.location.protocol.startsWith('http') ? window.location.href : undefined;
+            const { error } = await sbClient.auth.signInWithOtp({ email, options: redirectTo ? { emailRedirectTo: redirectTo } : undefined });
+            if (error) throw error;
+            generatedStuOtp = 'SUPABASE_LINK_SENT';
+            document.getElementById('stu-otp-hint').textContent = `✅ Confirmation email sent to ${email}! Tap "Confirm email address" in your inbox, then click Verify.`;
+          } catch (e) {
+            generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
+            document.getElementById('stu-otp-hint').textContent = `ℹ️ Email cap reached — fallback code: ${generatedStuOtp}`;
+          }
+        } else {
+          generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
+          document.getElementById('stu-otp-hint').textContent = `Verification Code: ${generatedStuOtp}`;
+        }
+      });
+
+      document.getElementById('btn-stu-login').addEventListener('click', async () => {
+        const email = document.getElementById('stu-email-input').value.trim().toLowerCase();
+        const code = document.getElementById('stu-otp-input').value.trim();
+        const err = document.getElementById('stu-login-error');
+        if (!email.endsWith('@stu.ucc.edu.gh')) {
+          err.classList.remove('hidden');
+          err.textContent = '🚫 Enter a valid @stu.ucc.edu.gh email.';
+          return;
+        }
+        if (sbClient && generatedStuOtp === 'SUPABASE_LINK_SENT') {
+          if (code && code.length === 6) {
+            try {
+              const { error } = await sbClient.auth.verifyOtp({ email, token: code, type: 'email' });
+              if (error) throw error;
+            } catch (e) {
+              err.classList.remove('hidden');
+              err.textContent = `🚫 Invalid OTP: ${e.message}`;
+              return;
+            }
+          }
+        } else if (!generatedStuOtp || code !== generatedStuOtp) {
+          err.classList.remove('hidden');
+          err.textContent = '🚫 Click "Send Code" and complete email verification.';
+          return;
+        }
+        err.classList.add('hidden');
+        loggedInStudent = { index: pendingIdInput, email };
+        generatedStuOtp = null;
+        addAuditLog(`AUTH_OK: Student ${pendingIdInput} signed in.`);
+        updateActiveScreen();
+      });
+
+      // Student Ordering & MoMo Validation
+      document.getElementById('joint-select').addEventListener('change', e => {
+        selectedVendorId = e.target.value;
+        selectedAddonQtys = {};
+        renderStudentWorkspace();
+      });
+      document.getElementById('slot-select').addEventListener('change', e => { selectedSlotKey = e.target.value; renderStudentWorkspace(); });
+      document.getElementById('btn-clear-addons').addEventListener('click', () => { selectedAddonQtys = {}; renderStudentWorkspace(); });
+
+      document.getElementById('pay-mtn').addEventListener('click', () => {
+        selectedPaymentNet = 'MTN MoMo';
+        document.getElementById('pay-mtn').className = 'pay-net-btn py-2 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-bold text-xs';
+        document.getElementById('pay-telecel').className = 'pay-net-btn py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs';
+      });
+      document.getElementById('pay-telecel').addEventListener('click', () => {
+        selectedPaymentNet = 'Telecel Cash';
+        document.getElementById('pay-telecel').className = 'pay-net-btn py-2 px-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950 font-bold text-xs';
+        document.getElementById('pay-mtn').className = 'pay-net-btn py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs';
+      });
+
+      function validateGhanaMoMo(phone, network) {
+        const cleaned = phone.replace(/\s+/g, '');
+        if (!/^0\d{9}$/.test(cleaned)) return { ok: false, msg: 'Enter a valid 10-digit Ghana phone number starting with 0.' };
+        const prefix = cleaned.slice(0, 3);
+        const mtn = ['024', '054', '055', '059', '053', '025'];
+        const telecel = ['020', '050'];
+        if (network === 'MTN MoMo' && !mtn.includes(prefix)) return { ok: false, msg: `Prefix "${prefix}" is not an MTN MoMo number.` };
+        if (network === 'Telecel Cash' && !telecel.includes(prefix)) return { ok: false, msg: `Prefix "${prefix}" is not a Telecel Cash number.` };
+        return { ok: true, cleaned };
+      }
+
+      document.getElementById('btn-confirm-order').addEventListener('click', async () => {
+        const vendor = VENDORS.find(v => v.id === selectedVendorId);
+        const slotMeta = SLOT_WINDOWS.find(s => s.key === selectedSlotKey);
+        const base = selectedBaseId ? vendor.baseMeals.find(b => b.id === selectedBaseId) : null;
+        if (!vendor.isOpen || !base || !base.inStock || (vendor.slots[selectedSlotKey] || 0) >= slotMeta.max) return;
+
+        const activeMine = orders.filter(o => o.studentIndex === loggedInStudent.index && o.status !== 'COLLECTED');
+        if (activeMine.length >= 2) {
+          addAuditLog(`HOARDING_BLOCKED: Student ${loggedInStudent.index} attempted >2 active orders.`);
+          showToast('Limit reached: Maximum 2 active uncollected orders.', 'error');
+          return;
+        }
+
+        const phoneInput = document.getElementById('stu-momo-phone').value.trim();
+        const momoErr = document.getElementById('stu-momo-error');
+        const check = validateGhanaMoMo(phoneInput, selectedPaymentNet);
+        if (!check.ok) {
+          momoErr.classList.remove('hidden');
+          momoErr.textContent = `🚫 ${check.msg}`;
+          addAuditLog(`MOMO_VALIDATION_FAILED: "${phoneInput}" rejected for ${selectedPaymentNet}.`);
+          showToast(check.msg, 'error');
+          return;
+        }
+        momoErr.classList.add('hidden');
+
+        const total = calculateTotalPrice(vendor);
+        const addonNames = [];
+        Object.entries(selectedAddonQtys).forEach(([id, qty]) => {
+          if (qty > 0) {
+            const a = vendor.addons.find(x => x.id === id);
+            if (a && a.inStock) addonNames.push(`${qty}x ${a.name} (+GH₵ ${(a.price * qty).toFixed(2)})`);
+          }
+        });
+        const token = `CN-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newOrder = {
+          id: `ORD-${Math.floor(100 + Math.random() * 899)}`,
+          studentIndex: loggedInStudent.index,
+          vendorId: vendor.id,
+          vendorName: vendor.name,
+          baseName: base.name,
+          addonsText: addonNames.join(', ') || 'No add-ons',
+          price: total,
+          network: selectedPaymentNet,
+          slotKey: selectedSlotKey,
+          slot: slotMeta.label,
+          token,
+          status: 'CONFIRMED'
+        };
+        vendor.slots[selectedSlotKey] += 1;
+        orders.unshift(newOrder);
+        if (sbClient) {
+          try {
+            await sbClient.from('orders').insert({
+              id: newOrder.id, student_index: newOrder.studentIndex, vendor_id: newOrder.vendorId,
+              vendor_name: newOrder.vendorName, base_name: newOrder.baseName, addons_text: newOrder.addonsText,
+              price: newOrder.price, network: newOrder.network, slot: newOrder.slot, token: newOrder.token, status: newOrder.status
+            });
+          } catch (e) {}
+        }
+        addAuditLog(`PAYMENT_SPLIT: ${selectedPaymentNet} (${check.cleaned}) GH₵ ${total.toFixed(2)} routed to ${vendor.id} (${vendor.phone}) -> ${token}.`);
+        showToast(`${selectedPaymentNet} Confirmed! Token: ${token}`, 'success');
+        selectedBaseId = null;
+        selectedAddonQtys = {};
+        renderStudentWorkspace();
+      });
+
+      document.getElementById('btn-send-feedback').addEventListener('click', () => {
+        const comment = document.getElementById('fb-comment').value.trim();
+        if (!comment) return;
+        feedbacks.unshift({ id: `FB-${feedbacks.length + 1}`, student: loggedInStudent.index, rating: document.getElementById('fb-rating').value, text: comment, status: 'OPEN' });
+        document.getElementById('fb-comment').value = '';
+        showToast('Feedback submitted!', 'success');
+      });
+
+      // Vendor Auth
+      document.getElementById('btn-ven-login').addEventListener('click', () => {
+        const pass = document.getElementById('ven-pass-input').value.trim();
+        const v = VENDORS.find(x => x.id === pendingIdInput);
+        const err = document.getElementById('ven-login-error');
+        if (!v || v.passcode !== pass) { err.classList.remove('hidden'); err.textContent = '❌ Invalid Vendor Passcode.'; return; }
+        err.classList.add('hidden');
+        loggedInVendorId = v.id;
+        updateActiveScreen();
+      });
+      document.getElementById('btn-ven-forgot-toggle').addEventListener('click', () => {
+        document.getElementById('ven-pass-box').classList.add('hidden');
+        document.getElementById('vendor-otp-form').classList.remove('hidden');
+      });
+      document.getElementById('btn-ven-back-login').addEventListener('click', () => {
+        document.getElementById('vendor-otp-form').classList.add('hidden');
+        document.getElementById('ven-pass-box').classList.remove('hidden');
+      });
+      document.getElementById('btn-send-ven-otp').addEventListener('click', () => {
+        generatedVenOtp = String(Math.floor(100000 + Math.random() * 900000));
+        document.getElementById('ven-otp-banner').textContent = `SMS sent to 0539262509 (Code: ${generatedVenOtp})`;
+      });
+      document.getElementById('btn-confirm-ven-reset').addEventListener('click', () => {
+        const code = document.getElementById('ven-otp-code').value.trim();
+        const newPass = document.getElementById('ven-new-pass').value.trim();
+        const v = VENDORS.find(x => x.id === pendingIdInput);
+        if (!v || !generatedVenOtp || code !== generatedVenOtp || !newPass) { showToast('Invalid OTP or passcode.', 'error'); return; }
+        v.passcode = newPass;
+        generatedVenOtp = null;
+        showToast(`Passcode updated for ${v.id}!`, 'success');
+        document.getElementById('btn-ven-back-login').click();
+      });
+
+      document.getElementById('btn-add-menu-item').addEventListener('click', () => {
+        const type = document.getElementById('new-item-type').value;
+        const name = document.getElementById('new-item-name').value.trim();
+        const price = parseFloat(document.getElementById('new-item-price').value);
+        if (!name || isNaN(price) || price <= 0) { showToast('Enter a valid item name and price.', 'error'); return; }
+        const vendor = VENDORS.find(v => v.id === loggedInVendorId);
+        pendingEdits.unshift({ id: `EDIT-${Math.floor(100 + Math.random() * 900)}`, vendorId: vendor.id, vendorName: vendor.name, editType: 'NEW_ITEM', targetType: type, targetId: null, itemName: name, oldPrice: null, newPrice: price, status: 'PENDING' });
+        document.getElementById('new-item-name').value = '';
+        document.getElementById('new-item-price').value = '';
+        addAuditLog(`MAKER_CHECKER: ${vendor.id} submitted new item "${name}" (GH₵ ${price.toFixed(2)}) for Admin approval.`);
+        showToast(`"${name}" sent to Admin for approval!`, 'info');
+      });
+
+      document.getElementById('btn-toggle-shop-open').addEventListener('click', () => {
+        const v = VENDORS.find(x => x.id === loggedInVendorId);
+        if (v) { v.isOpen = !v.isOpen; renderVendorWorkspace(); }
+      });
+
+      document.getElementById('btn-verify-handover').addEventListener('click', () => {
+        const msg = document.getElementById('vendor-verify-message');
+        const val = document.getElementById('vendor-token-input').value.trim().toUpperCase();
+        if (failedAttempts >= 3) {
+          msg.className = 'block text-xs font-bold px-3 py-2 rounded-xl bg-rose-100 text-rose-800';
+          msg.textContent = '🔒 Security Lockout: 3 failed attempts reached.';
+          return;
+        }
+        const match = orders.find(o => o.token.toUpperCase() === val && o.vendorId === loggedInVendorId);
+        if (!match) {
+          failedAttempts++;
+          document.getElementById('rate-limit-display').textContent = `Attempts: ${failedAttempts} / 3`;
+          msg.className = 'block text-xs font-bold px-3 py-2 rounded-xl bg-rose-100 text-rose-800';
+          msg.textContent = `❌ Invalid Token "${val}" for this shop.`;
+          return;
+        }
+        if (match.status === 'COLLECTED') {
+          msg.className = 'block text-xs font-bold px-3 py-2 rounded-xl bg-amber-100 text-amber-900';
+          msg.textContent = `⚠️ Token ${val} already used!`;
+          return;
+        }
+        match.status = 'COLLECTED';
+        const v = VENDORS.find(x => x.id === match.vendorId);
+        if (v && match.slotKey && v.slots[match.slotKey] > 0) v.slots[match.slotKey] -= 1;
+        failedAttempts = 0;
+        document.getElementById('rate-limit-display').textContent = 'Attempts: 0 / 3';
+        msg.className = 'block text-xs font-bold px-3 py-2 rounded-xl bg-emerald-100 text-emerald-900';
+        msg.textContent = `✅ Token ${val} Verified! Hand over "${match.baseName}".`;
+        renderVendorWorkspace();
+      });
+
+      // Admin Auth
+      document.getElementById('btn-adm-login').addEventListener('click', () => {
+        const pass = document.getElementById('adm-pass-input').value.trim();
+        const adm = ADMINS.find(a => a.id === pendingIdInput && a.passcode === pass);
+        const err = document.getElementById('adm-login-error');
+        if (!adm) { err.classList.remove('hidden'); err.textContent = '❌ Invalid Admin Password.'; return; }
+        err.classList.add('hidden');
+        loggedInAdmin = adm;
+        addAuditLog(`ADMIN_LOGIN: ${adm.id} signed in.`);
+        updateActiveScreen();
+      });
+      document.getElementById('btn-adm-forgot-toggle').addEventListener('click', () => {
+        document.getElementById('adm-pass-box').classList.add('hidden');
+        document.getElementById('admin-reset-form').classList.remove('hidden');
+      });
+      document.getElementById('btn-adm-back-login').addEventListener('click', () => {
+        document.getElementById('admin-reset-form').classList.add('hidden');
+        document.getElementById('adm-pass-box').classList.remove('hidden');
+      });
+      document.getElementById('btn-send-adm-otp').addEventListener('click', () => {
+        generatedAdmOtp = String(Math.floor(100000 + Math.random() * 900000));
+        document.getElementById('adm-otp-banner').textContent = `2FA SMS to 0539262509: ${generatedAdmOtp}`;
+      });
+      document.getElementById('btn-confirm-adm-reset').addEventListener('click', () => {
+        const code = document.getElementById('adm-otp-code').value.trim();
+        const newPass = document.getElementById('adm-new-pass').value.trim();
+        const adm = ADMINS.find(a => a.id === pendingIdInput);
+        if (!adm || !generatedAdmOtp || code !== generatedAdmOtp || !newPass) { showToast('Invalid OTP or password.', 'error'); return; }
+        adm.passcode = newPass;
+        generatedAdmOtp = null;
+        showToast(`Password updated for ${adm.id}!`, 'success');
+        document.getElementById('btn-adm-back-login').click();
+      });
+
+      updateActiveScreen();
+    });
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+    }
+  </script>
+</body>
+</html>
