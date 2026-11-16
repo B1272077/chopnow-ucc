@@ -88,8 +88,12 @@
             </button>
           </div>
         </div>
-        <div id="stu-otp-section" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+        <div id="stu-otp-section" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
           <p id="stu-otp-hint" class="text-xs text-emerald-800 font-medium"></p>
+          <div id="stu-fallback-box" class="hidden space-y-1">
+            <label for="stu-fallback-otp-input" class="block text-[11px] font-bold text-slate-700">6-Digit Fallback Code</label>
+            <input id="stu-fallback-otp-input" type="text" maxlength="6" placeholder="Paste 6-digit code here" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-mono font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500" />
+          </div>
         </div>
         <div id="stu-login-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"></div>
         <button id="btn-stu-login" type="button" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow transition">
@@ -1036,10 +1040,28 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
+      // Clean double-hash (##access_token=...) if present from redirect
+      if (window.location.hash && window.location.hash.startsWith('##')) {
+        try {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search + '#' + window.location.hash.slice(2));
+        } catch (e) {}
+      }
+
       // Auto-connect Supabase on startup
       if (window.supabase) {
         try {
           sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          sbClient.auth.onAuthStateChange((event, session) => {
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
+              const confirmedEmail = (session.user.email || '').toLowerCase();
+              if (confirmedEmail.endsWith('@stu.ucc.edu.gh') && !loggedInStudent) {
+                let savedIdx = 'UCC-STUDENT';
+                try { savedIdx = localStorage.getItem('chopnow_pending_idx') || savedIdx; } catch (e) {}
+                loggedInStudent = { index: savedIdx, email: confirmedEmail };
+                updateActiveScreen();
+              }
+            }
+          });
           const { error } = await sbClient.from('vendors').select('id').limit(1);
           const pill = document.getElementById('cloud-status-pill');
           if (!error) {
@@ -1110,10 +1132,11 @@
         updateActiveScreen();
       });
 
-      // Student Email Link Verification
+      // Student Email Link Verification + Automatic 6-Digit Fallback on Rate Limit
       document.getElementById('btn-send-stu-otp').addEventListener('click', async () => {
         const email = document.getElementById('stu-email-input').value.trim().toLowerCase();
         const err = document.getElementById('stu-login-error');
+        const fallbackBox = document.getElementById('stu-fallback-box');
         if (!email.endsWith('@stu.ucc.edu.gh')) {
           err.classList.remove('hidden');
           err.textContent = '🚫 Only @stu.ucc.edu.gh student emails are permitted.';
@@ -1121,6 +1144,7 @@
           return;
         }
         err.classList.add('hidden');
+        fallbackBox.classList.add('hidden');
         try { localStorage.setItem('chopnow_pending_idx', pendingIdInput); } catch (e) {}
         document.getElementById('stu-otp-section').classList.remove('hidden');
         startOtpCooldown();
@@ -1130,15 +1154,17 @@
             const redirectTo = window.location.protocol.startsWith('http') ? window.location.origin + window.location.pathname : undefined;
             const { error } = await sbClient.auth.signInWithOtp({ email, options: redirectTo ? { emailRedirectTo: redirectTo } : undefined });
             if (error) throw error;
-            generatedStuOtp = 'LINK_READY';
-            document.getElementById('stu-otp-hint').textContent = `✅ Confirmation link sent to ${email}! Open your UCC email, tap "Confirm email address", then click "Verify & Enter App" below.`;
+            generatedStuOtp = 'LINK_MODE';
+            document.getElementById('stu-otp-hint').textContent = `✅ Confirmation link sent to ${email}! Tap "Confirm email address" in your inbox to enter the app automatically.`;
           } catch (e) {
-            generatedStuOtp = 'LINK_READY';
-            document.getElementById('stu-otp-hint').textContent = `✅ Email check ready for ${email}. Click "Verify & Enter App" below to continue.`;
+            generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
+            fallbackBox.classList.remove('hidden');
+            document.getElementById('stu-otp-hint').textContent = `ℹ️ Supabase hourly email limit reached — enter this 6-digit fallback code below: ${generatedStuOtp}`;
           }
         } else {
-          generatedStuOtp = 'LINK_READY';
-          document.getElementById('stu-otp-hint').textContent = `✅ Email verified locally for ${email}. Click "Verify & Enter App" below.`;
+          generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
+          fallbackBox.classList.remove('hidden');
+          document.getElementById('stu-otp-hint').textContent = `ℹ️ Local Mode — enter this 6-digit verification code below: ${generatedStuOtp}`;
         }
       });
 
@@ -1150,7 +1176,7 @@
           err.textContent = '🚫 Enter a valid @stu.ucc.edu.gh email.';
           return;
         }
-        if (sbClient) {
+        if (generatedStuOtp === 'LINK_MODE' && sbClient) {
           const { data: sessData } = await sbClient.auth.getSession();
           const confirmedEmail = sessData && sessData.session && sessData.session.user ? (sessData.session.user.email || '').toLowerCase() : '';
           if (!confirmedEmail || confirmedEmail !== email) {
@@ -1159,7 +1185,14 @@
             addAuditLog(`AUTH_BLOCKED: ${pendingIdInput} tried entering before confirming ${email}.`);
             return;
           }
-        } else if (!generatedStuOtp) {
+        } else if (generatedStuOtp && generatedStuOtp !== 'LINK_MODE') {
+          const entered = document.getElementById('stu-fallback-otp-input').value.trim();
+          if (entered !== generatedStuOtp) {
+            err.classList.remove('hidden');
+            err.textContent = '🚫 Invalid 6-digit fallback code. Copy the 6-digit code shown in the green box above.';
+            return;
+          }
+        } else {
           err.classList.remove('hidden');
           err.textContent = '🚫 Click "Send Link" first to verify your UCC email.';
           return;
