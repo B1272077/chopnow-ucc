@@ -168,103 +168,264 @@
       </div>
     </section>
 
-    <!-- STUDENT WORKSPACE -->
-    <section id="student-workspace" class="hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div class="lg:col-span-7 bg-white/92 backdrop-blur-sm rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
-          <div>
-            <label for="joint-select" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">1. Choose Campus Vendor</label>
-            <select id="joint-select" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
-          </div>
-
-          <div id="joint-info-badge" class="bg-blue-50 border border-blue-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"></div>
-
-          <div class="space-y-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">2. Select Base Meal &amp; Portion Size</span>
-            <div id="base-meals-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
-            <div id="portion-slider-box" class="hidden bg-blue-50/80 border border-blue-200 rounded-xl p-3 space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-slate-800">Base Portion Price:</span>
-                <span id="portion-price-label" class="font-extrabold text-[#b91c1c]">GH₵ 10.00</span>
-              </div>
-              <input id="portion-price-slider" type="range" min="10" max="20" step="5" value="10" class="w-full accent-[#b91c1c] cursor-pointer" />
-              <div id="portion-ticks" class="flex justify-between text-[11px] font-bold text-slate-500 font-mono"></div>
-            </div>
-          </div>
-
-          <div class="space-y-2 pt-2 border-t border-slate-100">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">3. Add Proteins &amp; Sides (Select Quantity)</span>
-              <button id="btn-clear-addons" type="button" class="text-xs text-[#b91c1c] font-bold hover:underline">Clear</button>
-            </div>
-            <div id="addons-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-700">Your Plate:</span>
-              <span id="summary-total-calc" class="font-extrabold text-[#b91c1c]">GH₵ 0.00</span>
-            </div>
-            <div id="summary-plate-text" class="text-slate-600 font-medium"></div>
-          </div>
-        </div>
-
-        <div class="lg:col-span-5 space-y-5">
-          <div class="bg-white/92 backdrop-blur-sm rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-              <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">4. Pickup Window &amp; Payment</h3>
-              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">5-Min Turnaround</span>
-            </div>
-
-            <div>
-              <label for="slot-select" class="block text-xs font-semibold text-slate-600 mb-1">Lecture Break Slot (Per Vendor)</label>
-              <select id="slot-select" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
-            </div>
-
-            <div id="slot-capacity-status" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs"></div>
-
-            <div class="space-y-2">
-              <label class="block text-xs font-semibold text-slate-600">Mobile Money Network</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" id="pay-mtn" class="pay-net-btn py-2 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-bold text-xs">🟡 MTN MoMo</button>
-                <button type="button" id="pay-telecel" class="pay-net-btn py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs">🔴 Telecel Cash</button>
-              </div>
-              <input id="stu-momo-phone" type="tel" maxlength="10" placeholder="Enter 10-digit MoMo / Telecel Number (e.g. 0539262509)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-800" />
-              <p id="stu-momo-error" class="hidden text-[11px] font-bold text-rose-600"></p>
-            </div>
-
-            <div class="border-t border-slate-200 pt-3 flex items-center justify-between">
+    <!-- STUDENT WORKSPACE (UCC-Branded Modern SaaS Dashboard) -->
+    <section id="student-workspace" class="hidden">
+      <div class="flex flex-col lg:flex-row gap-6 items-start">
+        <!-- Desktop Left Sidebar (UCC Royal Navy) -->
+        <aside class="hidden lg:flex flex-col justify-between w-64 shrink-0 bg-[#0f172a] text-white rounded-3xl p-4 shadow-xl sticky top-20 min-h-[620px]">
+          <div class="space-y-5">
+            <div class="flex items-center gap-3 px-2 pt-1">
+              <img src="icon-192.png" alt="ChopNow UCC" class="w-10 h-10 rounded-xl shadow border border-white/15 object-cover" />
               <div>
-                <span class="text-xs text-slate-500 block">Total Amount</span>
-                <span id="checkout-price-display" class="text-xl font-extrabold text-slate-900">GH₵ 0.00</span>
+                <div class="font-extrabold text-base tracking-tight text-white">ChopNow <span class="text-[#eab308]">UCC</span></div>
+                <div class="text-[11px] text-slate-400">Order &bull; Pickup &bull; Enjoy</div>
               </div>
-              <button id="btn-confirm-order" type="button" class="px-5 py-2.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white font-bold text-sm rounded-xl shadow transition">
-                Pay &amp; Order
+            </div>
+            <nav class="space-y-1.5 text-xs font-bold" id="stu-desktop-nav">
+              <button type="button" data-stu-tab="dashboard" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-[#b91c1c] text-white shadow transition">
+                <span>🏠</span><span>Dashboard</span>
+              </button>
+              <button type="button" data-stu-tab="order" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
+                <span>🍽️</span><span>Browse &amp; Order</span>
+              </button>
+              <button type="button" data-stu-tab="track" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
+                <span>📍</span><span>Track Token</span>
+              </button>
+              <button type="button" data-stu-tab="history" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
+                <span>📜</span><span>Order History</span>
+              </button>
+              <button type="button" data-stu-tab="feedback" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
+                <span>💬</span><span>Feedback</span>
+              </button>
+            </nav>
+          </div>
+          <div class="space-y-3 pt-4 border-t border-white/10">
+            <div class="bg-gradient-to-br from-[#1e3a8a]/80 to-slate-900 border border-[#eab308]/30 rounded-2xl p-3.5 text-center space-y-1.5">
+              <div class="text-lg">🍲</div>
+              <div class="font-extrabold text-xs text-[#eab308]">Skip the Queue!</div>
+              <p class="text-[11px] text-slate-300 leading-snug">Pre-order your meal before leaving the lecture hall.</p>
+              <div class="text-[10px] font-bold text-slate-400 pt-1">📍 UCC Campus</div>
+            </div>
+            <button type="button" onclick="document.getElementById('btn-logout').click()" class="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition">
+              <span>🚪</span><span>Log Out</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Student Content Area -->
+        <div class="flex-1 w-full space-y-5 pb-20 lg:pb-6">
+          <!-- Mobile Top Tab Bar -->
+          <div class="flex lg:hidden items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <button type="button" data-stu-tab="dashboard" class="stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#b91c1c] text-white shadow">🏠 Dashboard</button>
+            <button type="button" data-stu-tab="order" class="stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700">🍽️ Order</button>
+            <button type="button" data-stu-tab="track" class="stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700">📍 Track</button>
+            <button type="button" data-stu-tab="history" class="stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700">📜 History</button>
+            <button type="button" data-stu-tab="feedback" class="stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700">💬 Feedback</button>
+          </div>
+
+          <!-- TAB 1: DASHBOARD OVERVIEW -->
+          <div id="stu-tab-dashboard" class="space-y-5">
+            <!-- Hero Banner (UCC Royal Navy + Gold + Crimson) -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white p-6 sm:p-7 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-5">
+              <div class="space-y-2.5 z-10 text-center sm:text-left">
+                <span class="inline-block text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#eab308]/20 text-[#eab308] border border-[#eab308]/40">UCC Campus Fast-Lane</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  Welcome back, <span id="dash-student-name" class="text-[#eab308]">Student</span>! 👋
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-200">Good food. Less waiting. Collect in 5 minutes with your CN token.</p>
+                <div class="pt-1">
+                  <button type="button" onclick="switchStudentTab('order')" class="px-5 py-2.5 rounded-xl bg-[#b91c1c] hover:bg-[#991b1b] text-white font-extrabold text-xs sm:text-sm shadow-md transition">
+                    Order Now &rarr;
+                  </button>
+                </div>
+              </div>
+              <img src="waakye.jpg" alt="Ghanaian Waakye" class="w-40 h-40 sm:w-44 sm:h-44 rounded-2xl object-cover shadow-xl border-2 border-[#eab308]/50 shrink-0" />
+            </div>
+
+            <!-- 4 Quick-Action Pills -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button type="button" onclick="switchStudentTab('order')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-xl bg-red-50 text-[#b91c1c] flex items-center justify-center text-base">🍴</span>
+                  <span class="font-extrabold text-xs text-slate-800">Browse Vendors</span>
+                </div>
+                <span class="text-slate-400 font-bold">&rarr;</span>
+              </button>
+              <button type="button" onclick="switchStudentTab('order')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-base">🛒</span>
+                  <span class="font-extrabold text-xs text-slate-800">Build Plate</span>
+                </div>
+                <span class="text-slate-400 font-bold">&rarr;</span>
+              </button>
+              <button type="button" onclick="switchStudentTab('track')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center text-base">🎫</span>
+                  <span class="font-extrabold text-xs text-slate-800">Track Token</span>
+                </div>
+                <span class="text-slate-400 font-bold">&rarr;</span>
+              </button>
+              <button type="button" onclick="switchStudentTab('history')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-base">📜</span>
+                  <span class="font-extrabold text-xs text-slate-800">My Orders</span>
+                </div>
+                <span class="text-slate-400 font-bold">&rarr;</span>
+              </button>
+            </div>
+
+            <!-- Popular Campus Vendors Grid -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-extrabold text-sm sm:text-base text-slate-900">🔥 Popular Campus Vendors</h3>
+                <button type="button" onclick="switchStudentTab('order')" class="text-xs font-bold text-[#b91c1c] hover:underline">View All &rarr;</button>
+              </div>
+              <div id="dash-vendors-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Live Order Tracking + Recent Orders Split -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+              <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-extrabold text-sm text-slate-900">📊 Your Order Tracking</h3>
+                  <button type="button" onclick="switchStudentTab('track')" class="text-xs font-bold text-[#1e3a8a] hover:underline">Full View &rarr;</button>
+                </div>
+                <div id="dash-tracker-body"></div>
+              </div>
+              <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-extrabold text-sm text-slate-900">🧾 Recent Orders</h3>
+                  <button type="button" onclick="switchStudentTab('history')" class="text-xs font-bold text-[#b91c1c] hover:underline">View All &rarr;</button>
+                </div>
+                <div id="dash-recent-orders" class="space-y-2.5 text-xs"></div>
+              </div>
+            </div>
+
+            <!-- UCC Security Banner -->
+            <div class="bg-[#0f172a] text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow">
+              <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-[#eab308]/20 text-[#eab308] flex items-center justify-center text-xl shrink-0">🛡️</span>
+                <div>
+                  <div class="font-extrabold text-sm">Your Security, Our Priority</div>
+                  <div class="text-xs text-slate-300">@stu.ucc.edu.gh verified &amp; protected cloud sync with Supabase PostgreSQL.</div>
+                </div>
+              </div>
+              <button type="button" onclick="switchStudentTab('feedback')" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-[#eab308] shrink-0 transition">
+                Send Feedback &rarr;
               </button>
             </div>
           </div>
 
-          <div id="active-token-box" class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 space-y-3 shadow-lg"></div>
+          <!-- TAB 2: BROWSE & BUILD ORDER -->
+          <div id="stu-tab-order" class="hidden space-y-5">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div class="lg:col-span-7 bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
+                <div>
+                  <label for="joint-select" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">1. Choose Campus Vendor</label>
+                  <select id="joint-select" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
+                </div>
 
-          <div class="bg-white/92 backdrop-blur-sm rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">📜 My Order History</h4>
-              <span id="history-count-badge" class="text-[11px] font-bold text-slate-500">0 orders</span>
+                <div id="joint-info-badge" class="bg-blue-50 border border-blue-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"></div>
+
+                <div class="space-y-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">2. Select Base Meal &amp; Portion Size</span>
+                  <div id="base-meals-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+                  <div id="portion-slider-box" class="hidden bg-blue-50/80 border border-blue-200 rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-bold text-slate-800">Base Portion Price:</span>
+                      <span id="portion-price-label" class="font-extrabold text-[#b91c1c]">GH₵ 10.00</span>
+                    </div>
+                    <input id="portion-price-slider" type="range" min="10" max="20" step="5" value="10" class="w-full accent-[#b91c1c] cursor-pointer" />
+                    <div id="portion-ticks" class="flex justify-between text-[11px] font-bold text-slate-500 font-mono"></div>
+                  </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-slate-100">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">3. Add Proteins &amp; Sides (Select Quantity)</span>
+                    <button id="btn-clear-addons" type="button" class="text-xs text-[#b91c1c] font-bold hover:underline">Clear</button>
+                  </div>
+                  <div id="addons-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-700">Your Plate:</span>
+                    <span id="summary-total-calc" class="font-extrabold text-[#b91c1c]">GH₵ 0.00</span>
+                  </div>
+                  <div id="summary-plate-text" class="text-slate-600 font-medium"></div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-5 space-y-5">
+                <div class="bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">4. Pickup Window &amp; Payment</h3>
+                    <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">5-Min Turnaround</span>
+                  </div>
+
+                  <div>
+                    <label for="slot-select" class="block text-xs font-semibold text-slate-600 mb-1">Lecture Break Slot (Per Vendor)</label>
+                    <select id="slot-select" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
+                  </div>
+
+                  <div id="slot-capacity-status" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs"></div>
+
+                  <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-600">Mobile Money Network</label>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button type="button" id="pay-mtn" class="pay-net-btn py-2 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-bold text-xs">🟡 MTN MoMo</button>
+                      <button type="button" id="pay-telecel" class="pay-net-btn py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs">🔴 Telecel Cash</button>
+                    </div>
+                    <input id="stu-momo-phone" type="tel" maxlength="10" placeholder="Enter 10-digit MoMo / Telecel Number (e.g. 0539262509)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-800" />
+                    <p id="stu-momo-error" class="hidden text-[11px] font-bold text-rose-600"></p>
+                  </div>
+
+                  <div class="border-t border-slate-200 pt-3 flex items-center justify-between">
+                    <div>
+                      <span class="text-xs text-slate-500 block">Total Amount</span>
+                      <span id="checkout-price-display" class="text-xl font-extrabold text-slate-900">GH₵ 0.00</span>
+                    </div>
+                    <button id="btn-confirm-order" type="button" class="px-5 py-2.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white font-bold text-sm rounded-xl shadow transition">
+                      Pay &amp; Order
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div id="student-history-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs"></div>
           </div>
 
-          <div class="bg-white/92 backdrop-blur-sm rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5">
-            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Rate Your Experience</h4>
-            <div class="flex gap-2">
-              <select id="fb-rating" class="rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs font-semibold bg-slate-50">
-                <option value="5 ⭐">5 ⭐</option>
-                <option value="4 ⭐">4 ⭐</option>
-                <option value="3 ⭐">3 ⭐</option>
-                <option value="2 ⭐">2 ⭐</option>
-              </select>
-              <input id="fb-comment" type="text" placeholder="Share feedback with campus admin..." class="w-full rounded-xl border border-slate-300 px-3 py-1.5 text-xs" />
-              <button id="btn-send-feedback" type="button" class="px-3 py-1.5 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold shrink-0">Send</button>
+          <!-- TAB 3: LIVE TOKEN TRACKER -->
+          <div id="stu-tab-track" class="hidden space-y-5">
+            <div id="active-token-box" class="bg-gradient-to-br from-[#0f172a] to-slate-800 text-white rounded-3xl p-6 space-y-4 shadow-lg max-w-2xl"></div>
+          </div>
+
+          <!-- TAB 4: ORDER HISTORY -->
+          <div id="stu-tab-history" class="hidden space-y-4">
+            <div class="bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">📜 My Order History</h4>
+                <span id="history-count-badge" class="text-xs font-bold text-slate-500">0 orders</span>
+              </div>
+              <div id="student-history-list" class="space-y-2.5 text-xs"></div>
+            </div>
+          </div>
+
+          <!-- TAB 5: FEEDBACK -->
+          <div id="stu-tab-feedback" class="hidden space-y-4">
+            <div class="bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 max-w-xl">
+              <h4 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">💬 Rate Your Campus Experience</h4>
+              <p class="text-xs text-slate-500">Your feedback goes directly to ChopNow UCC Group 36 administrators.</p>
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <select id="fb-rating" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold bg-slate-50">
+                  <option value="5 ⭐">5 ⭐</option>
+                  <option value="4 ⭐">4 ⭐</option>
+                  <option value="3 ⭐">3 ⭐</option>
+                  <option value="2 ⭐">2 ⭐</option>
+                </select>
+                <input id="fb-comment" type="text" placeholder="Share feedback with campus admin..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs" />
+                <button id="btn-send-feedback" type="button" class="px-4 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold shrink-0">Send</button>
+              </div>
             </div>
           </div>
         </div>
@@ -657,7 +818,147 @@
       }
     }
 
+    let activeStudentTab = 'dashboard';
+
+    function switchStudentTab(tab) {
+      activeStudentTab = tab;
+      ['dashboard', 'order', 'track', 'history', 'feedback'].forEach(t => {
+        const panel = document.getElementById('stu-tab-' + t);
+        if (panel) panel.classList.toggle('hidden', t !== tab);
+      });
+      document.querySelectorAll('.stu-nav-btn').forEach(btn => {
+        const isMe = btn.getAttribute('data-stu-tab') === tab;
+        const inSidebar = btn.closest('aside');
+        if (inSidebar) {
+          btn.className = isMe
+            ? 'stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-[#b91c1c] text-white shadow transition'
+            : 'stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition';
+        } else {
+          btn.className = isMe
+            ? 'stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#b91c1c] text-white shadow'
+            : 'stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700';
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function mealFoodImage(name) {
+      const n = (name || '').toLowerCase();
+      if (n.includes('fried rice')) return 'friedrice.jpg';
+      if (n.includes('jollof')) return 'jollof.jpg';
+      if (n.includes('gob')) return 'gobe.jpg';
+      return 'waakye.jpg';
+    }
+
+    function vendorFoodImage(v) {
+      const n = (v.name || '').toLowerCase();
+      if (n.includes('fried rice') && !n.includes('jollof')) return 'friedrice.jpg';
+      if (n.includes('jollof')) return 'jollof.jpg';
+      if (n.includes('gob')) return 'gobe.jpg';
+      return 'waakye.jpg';
+    }
+
+    function renderStudentDashboardExtras() {
+      const nameEl = document.getElementById('dash-student-name');
+      if (nameEl && loggedInStudent) nameEl.textContent = loggedInStudent.index;
+
+      const grid = document.getElementById('dash-vendors-grid');
+      if (grid) {
+        grid.innerHTML = '';
+        VENDORS.forEach(v => {
+          const minPrice = v.baseMeals && v.baseMeals.length ? Math.min(...v.baseMeals.map(b => b.price)) : 10;
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between';
+          card.innerHTML = `
+            <div class="relative h-36 bg-slate-100">
+              <img src="${vendorFoodImage(v)}" alt="${v.name}" class="w-full h-full object-cover" />
+              <span class="absolute top-2.5 right-2.5 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow ${v.isOpen ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">
+                ${v.isOpen ? '● Open Now' : '● Closed'}
+              </span>
+            </div>
+            <div class="p-3.5 space-y-2.5">
+              <div>
+                <h4 class="font-extrabold text-sm text-slate-900 leading-snug">${v.name}</h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">📍 ${v.zone} &bull; From <b class="text-[#b91c1c]">GH₵ ${minPrice.toFixed(2)}</b></p>
+              </div>
+              <button type="button" data-dash-vendor="${v.id}" class="w-full py-2 rounded-xl border border-[#b91c1c] text-[#b91c1c] hover:bg-[#b91c1c] hover:text-white font-extrabold text-xs transition">
+                View Menu &rarr;
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        grid.querySelectorAll('button[data-dash-vendor]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectedVendorId = btn.getAttribute('data-dash-vendor');
+            selectedBaseId = null;
+            selectedAddonQtys = {};
+            renderStudentWorkspace();
+            switchStudentTab('order');
+          });
+        });
+      }
+
+      const myHistory = loggedInStudent ? orders.filter(o => o.studentIndex === loggedInStudent.index) : [];
+      const myActive = myHistory.find(o => o.status !== 'COLLECTED') || myHistory[0];
+      const trackerBody = document.getElementById('dash-tracker-body');
+      if (trackerBody) {
+        if (!myActive) {
+          trackerBody.innerHTML = `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-500">No active orders yet. Tap <b>Order Now</b> to place a pre-order and get your <code>CN-XXXX</code> pickup token.</div>`;
+        } else {
+          const steps = ['CONFIRMED', 'PREPARING', 'READY', 'COLLECTED'];
+          const labels = ['Order Confirmed', 'Preparing Your Food', 'Ready for Pickup', 'Collected'];
+          const curIdx = Math.max(0, steps.indexOf(myActive.status));
+          trackerBody.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+              <div class="sm:col-span-7 space-y-2.5">
+                ${labels.map((lbl, i) => {
+                  const done = i < curIdx || (curIdx === 3 && i === 3);
+                  const current = i === curIdx && curIdx < 3;
+                  return `
+                    <div class="flex items-center gap-2.5 text-xs ${current ? 'bg-amber-50 border border-[#eab308]/50 rounded-xl px-2.5 py-1.5 font-extrabold text-slate-900' : done ? 'font-bold text-slate-800' : 'text-slate-400'}">
+                      <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 ${done ? 'bg-emerald-600 text-white' : current ? 'bg-[#b91c1c] text-white' : 'bg-slate-200 text-slate-500'}">${done ? '✓' : i + 1}</span>
+                      <span>${lbl}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="sm:col-span-5 bg-[#0f172a] text-white rounded-2xl p-4 text-center space-y-1 shadow">
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-[#eab308]">Your Pickup Token</div>
+                <div class="text-2xl font-mono font-extrabold tracking-widest text-white">${myActive.token}</div>
+                <div class="text-[11px] text-slate-300 truncate">${myActive.vendorName}</div>
+                <div class="text-[10px] text-slate-400">${myActive.slot}</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      const recBox = document.getElementById('dash-recent-orders');
+      if (recBox) {
+        if (!myHistory.length) {
+          recBox.innerHTML = '<p class="text-slate-400">Your recent campus orders will appear here.</p>';
+        } else {
+          recBox.innerHTML = '';
+          myHistory.slice(0, 3).forEach(h => {
+            const pillCls = h.status === 'COLLECTED' ? 'bg-slate-100 text-slate-600' : h.status === 'READY' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-100 bg-slate-50';
+            row.innerHTML = `
+              <div class="min-w-0">
+                <div class="font-bold text-slate-900 truncate">${h.baseName}</div>
+                <div class="text-[10px] text-slate-500 truncate">${h.token} &bull; ${h.vendorName}</div>
+              </div>
+              <span class="shrink-0 text-[10px] font-extrabold px-2 py-0.5 rounded-full ${pillCls}">${h.status}</span>
+            `;
+            recBox.appendChild(row);
+          });
+        }
+      }
+    }
+
     function renderStudentWorkspace() {
+      renderStudentDashboardExtras();
       const sel = document.getElementById('joint-select');
       sel.innerHTML = '';
       VENDORS.forEach(v => {
@@ -693,8 +994,11 @@
           : 'border-slate-200 bg-white hover:border-slate-300'
         }`;
         btn.innerHTML = `
-          <div class="flex items-center justify-between gap-2">
-            <span class="font-bold text-xs sm:text-sm text-slate-900">${base.name}</span>
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img src="${mealFoodImage(base.name)}" alt="${base.name}" class="w-11 h-11 rounded-lg object-cover shrink-0 border border-slate-200" />
+              <span class="font-bold text-xs sm:text-sm text-slate-900 truncate">${base.name}</span>
+            </div>
             <span class="font-extrabold text-xs text-[#b91c1c] shrink-0">GH₵ ${base.price.toFixed(2)}</span>
           </div>
           <div class="mt-2 text-right text-[10px] font-bold ${!base.inStock ? 'text-rose-600' : isSel ? 'text-[#b91c1c]' : 'text-slate-400'}">
@@ -1366,6 +1670,7 @@
         renderStudentWorkspace();
       });
       document.getElementById('slot-select').addEventListener('change', e => { selectedSlotKey = e.target.value; renderStudentWorkspace(); });
+      document.querySelectorAll('.stu-nav-btn').forEach(btn => btn.addEventListener('click', () => switchStudentTab(btn.getAttribute('data-stu-tab'))));
       document.getElementById('btn-clear-addons').addEventListener('click', () => { selectedAddonQtys = {}; renderStudentWorkspace(); });
 
       document.getElementById('pay-mtn').addEventListener('click', () => {
