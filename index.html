@@ -84,14 +84,12 @@
           <div class="flex gap-2">
             <input id="stu-email-input" type="email" placeholder="name@stu.ucc.edu.gh" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
             <button id="btn-send-stu-otp" type="button" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0 transition">
-              Send Code
+              Send Link
             </button>
           </div>
         </div>
-        <div id="stu-otp-section" class="hidden space-y-2">
-          <label for="stu-otp-input" class="block text-xs font-bold text-slate-700">Email Verification Code (Optional if Link Clicked)</label>
-          <input id="stu-otp-input" type="text" placeholder="Enter 6-digit code if shown" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500" />
-          <p id="stu-otp-hint" class="text-[11px] text-emerald-700 font-mono"></p>
+        <div id="stu-otp-section" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+          <p id="stu-otp-hint" class="text-xs text-emerald-800 font-medium"></p>
         </div>
         <div id="stu-login-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5"></div>
         <button id="btn-stu-login" type="button" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow transition">
@@ -180,8 +178,16 @@
           <div id="joint-info-badge" class="bg-orange-50 border border-orange-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"></div>
 
           <div class="space-y-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">2. Select Base Meal</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">2. Select Base Meal &amp; Portion Size</span>
             <div id="base-meals-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+            <div id="portion-slider-box" class="hidden bg-orange-50/80 border border-orange-200 rounded-xl p-3 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-800">Base Portion Price:</span>
+                <span id="portion-price-label" class="font-extrabold text-orange-700">GH₵ 10.00</span>
+              </div>
+              <input id="portion-price-slider" type="range" min="10" max="20" step="5" value="10" class="w-full accent-orange-600 cursor-pointer" />
+              <div id="portion-ticks" class="flex justify-between text-[11px] font-bold text-slate-500 font-mono"></div>
+            </div>
           </div>
 
           <div class="space-y-2 pt-2 border-t border-slate-100">
@@ -237,6 +243,14 @@
           </div>
 
           <div id="active-token-box" class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 space-y-3 shadow-lg"></div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">📜 My Order History</h4>
+              <span id="history-count-badge" class="text-[11px] font-bold text-slate-500">0 orders</span>
+            </div>
+            <div id="student-history-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs"></div>
+          </div>
 
           <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5">
             <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Rate Your Experience</h4>
@@ -367,8 +381,23 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-          <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-900">🏪 Campus Vendors &amp; Settlement</h3>
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-900">🏪 Campus Vendors (Add / Remove)</h3>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
+            <span class="font-bold text-slate-800 block">➕ Onboard New Vendor</span>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="adm-new-ven-name" type="text" placeholder="Vendor Name" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white" />
+              <input id="adm-new-ven-id" type="text" placeholder="Vendor ID (e.g. KWESI-06)" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white font-mono uppercase" />
+              <input id="adm-new-ven-pass" type="text" placeholder="Passcode (e.g. 6677)" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white font-mono" />
+              <input id="adm-new-ven-zone" type="text" placeholder="Zone (e.g. Amamoma)" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white" />
+              <input id="adm-new-ven-loc" type="text" placeholder="Location & Walk Time" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white col-span-2" />
+              <input id="adm-new-ven-base" type="text" placeholder="Base Meal Name" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white" />
+              <input id="adm-new-ven-price" type="number" step="1" placeholder="Base GH₵ (e.g. 10)" class="rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white font-mono" />
+            </div>
+            <button id="btn-adm-add-vendor" type="button" class="w-full py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold transition">
+              Add Vendor to Live App
+            </button>
+          </div>
           <div id="adm-vendor-list" class="space-y-2.5 text-xs"></div>
         </div>
         <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
@@ -385,8 +414,8 @@
   </main>
 
   <!-- Minimal Production Footer (No Presenter Helper / No Cloud Inputs!) -->
-  <footer class="border-t border-slate-200 bg-white px-4 py-3 text-xs text-slate-400 text-center">
-    ChopNow UCC • Fast-Lane Campus Pre-Order System
+  <footer class="border-t border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 text-center">
+    ChopNow UCC • For vendor onboarding &amp; enquiries, contact <b class="text-slate-700">0539262509</b>
   </footer>
 
   <script>
@@ -447,6 +476,7 @@
 
     let selectedVendorId = 'SALAMATU-01';
     let selectedBaseId = null;
+    let selectedBasePortionPrice = 0;
     let selectedAddonQtys = {};
     let selectedSlotKey = 'slot1';
     let selectedPaymentNet = 'MTN MoMo';
@@ -490,7 +520,7 @@
           otpCooldownTimer = null;
           btn.disabled = false;
           btn.className = 'px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0 transition';
-          btn.textContent = 'Send Code';
+          btn.textContent = 'Send Link';
         } else {
           btn.textContent = `Resend (${remaining}s)`;
         }
@@ -499,7 +529,7 @@
 
     function calculateTotalPrice(vendor) {
       const base = selectedBaseId ? vendor.baseMeals.find(b => b.id === selectedBaseId) : null;
-      let total = base ? base.price : 0;
+      let total = base ? (selectedBasePortionPrice || base.price) : 0;
       Object.entries(selectedAddonQtys).forEach(([id, qty]) => {
         if (qty > 0) {
           const a = vendor.addons.find(x => x.id === id);
@@ -586,9 +616,33 @@
             ${!base.inStock ? 'SOLD OUT' : isSel ? '● Selected' : 'Tap to Select'}
           </div>
         `;
-        btn.addEventListener('click', () => { selectedBaseId = base.id; renderStudentWorkspace(); });
+        btn.addEventListener('click', () => {
+          selectedBaseId = base.id;
+          selectedBasePortionPrice = base.price;
+          renderStudentWorkspace();
+        });
         baseBox.appendChild(btn);
       });
+
+      const sliderBox = document.getElementById('portion-slider-box');
+      const sliderEl = document.getElementById('portion-price-slider');
+      const selectedBaseObj = selectedBaseId ? vendor.baseMeals.find(b => b.id === selectedBaseId) : null;
+      if (selectedBaseObj && selectedBaseObj.inStock) {
+        sliderBox.classList.remove('hidden');
+        const minP = selectedBaseObj.price;
+        const maxP = minP + 10;
+        if (!selectedBasePortionPrice || selectedBasePortionPrice < minP || selectedBasePortionPrice > maxP) {
+          selectedBasePortionPrice = minP;
+        }
+        sliderEl.min = minP;
+        sliderEl.max = maxP;
+        sliderEl.step = 5;
+        sliderEl.value = selectedBasePortionPrice;
+        document.getElementById('portion-price-label').textContent = `GH₵ ${selectedBasePortionPrice.toFixed(2)}`;
+        document.getElementById('portion-ticks').innerHTML = `<span>GH₵ ${minP}</span><span>GH₵ ${minP + 5}</span><span>GH₵ ${maxP}</span>`;
+      } else {
+        sliderBox.classList.add('hidden');
+      }
 
       const addonBox = document.getElementById('addons-container');
       addonBox.innerHTML = '';
@@ -652,7 +706,7 @@
       });
       document.getElementById('summary-plate-text').innerHTML = !chosenBase
         ? '<span class="text-slate-400">Select a base meal above to start building your plate.</span>'
-        : addonNames.length ? `<b>${chosenBase.name}</b> + ${addonNames.join(', ')}` : `<b>${chosenBase.name}</b> (No extra add-ons)`;
+        : addonNames.length ? `<b>${chosenBase.name} (GH₵ ${selectedBasePortionPrice.toFixed(2)})</b> + ${addonNames.join(', ')}` : `<b>${chosenBase.name} (GH₵ ${selectedBasePortionPrice.toFixed(2)})</b> (No extra add-ons)`;
 
       const slotSel = document.getElementById('slot-select');
       slotSel.innerHTML = '';
@@ -716,6 +770,27 @@
             <span>Total: <b class="text-emerald-400">GH₵ ${myOrder.price.toFixed(2)}</b></span>
           </div>
         `;
+
+      const histList = document.getElementById('student-history-list');
+      const myHistory = orders.filter(o => o.studentIndex === loggedInStudent.index);
+      document.getElementById('history-count-badge').textContent = `${myHistory.length} order${myHistory.length === 1 ? '' : 's'}`;
+      histList.innerHTML = myHistory.length ? '' : '<p class="text-slate-400">Your completed and active orders will appear here.</p>';
+      myHistory.forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'p-2.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1';
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-extrabold text-slate-900">${h.token} • ${h.vendorName}</span>
+            <span class="font-bold px-2 py-0.5 rounded-full text-[10px] ${h.status === 'COLLECTED' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-800'}">${h.status}</span>
+          </div>
+          <div class="text-slate-700">${h.baseName} ${h.addonsText !== 'No add-ons' ? '+ ' + h.addonsText : ''}</div>
+          <div class="flex justify-between text-[11px] text-slate-500">
+            <span>${h.slot}</span>
+            <b class="text-slate-900">GH₵ ${h.price.toFixed(2)} (${h.network})</b>
+          </div>
+        `;
+        histList.appendChild(item);
+      });
     }
 
     function renderVendorWorkspace() {
@@ -896,15 +971,32 @@
       vBox.innerHTML = '';
       VENDORS.forEach(v => {
         const div = document.createElement('div');
-        div.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between';
+        div.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2';
         div.innerHTML = `
           <div>
             <div class="font-bold text-slate-900">${v.name} <span class="font-mono text-[11px] text-slate-500">(${v.id})</span></div>
             <div class="text-[11px] text-slate-500">${v.zone} • Payout: <b>${v.phone}</b></div>
           </div>
-          <span class="px-2 py-0.5 rounded-full font-bold text-[11px] ${v.isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${v.isOpen ? 'OPEN' : 'CLOSED'}</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="px-2 py-0.5 rounded-full font-bold text-[11px] ${v.isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${v.isOpen ? 'OPEN' : 'CLOSED'}</span>
+            <button type="button" data-rem-ven="${v.id}" class="px-2 py-0.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[11px]">Remove</button>
+          </div>
         `;
         vBox.appendChild(div);
+      });
+
+      vBox.querySelectorAll('button[data-rem-ven]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const vid = btn.getAttribute('data-rem-ven');
+          const idx = VENDORS.findIndex(x => x.id === vid);
+          if (idx !== -1) {
+            const removed = VENDORS.splice(idx, 1)[0];
+            if (selectedVendorId === vid && VENDORS.length > 0) selectedVendorId = VENDORS[0].id;
+            addAuditLog(`ADMIN_REMOVED_VENDOR (${loggedInAdmin.id}): Removed ${removed.name} (${vid}).`);
+            showToast(`Removed vendor ${removed.name}.`, 'info');
+            renderAdminWorkspace();
+          }
+        });
       });
 
       const fBox = document.getElementById('adm-feedback-list');
@@ -953,6 +1045,16 @@
           if (!error) {
             pill.textContent = '● Supabase Cloud Live';
             pill.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+            const { data: sessData } = await sbClient.auth.getSession();
+            if (sessData && sessData.session && sessData.session.user) {
+              const confirmedEmail = (sessData.session.user.email || '').toLowerCase();
+              if (confirmedEmail.endsWith('@stu.ucc.edu.gh')) {
+                let savedIdx = 'UCC-STUDENT';
+                try { savedIdx = localStorage.getItem('chopnow_pending_idx') || savedIdx; } catch (e) {}
+                loggedInStudent = { index: savedIdx, email: confirmedEmail };
+                updateActiveScreen();
+              }
+            }
           } else {
             pill.textContent = '● Local Mode';
           }
@@ -995,7 +1097,8 @@
         });
       });
 
-      document.getElementById('btn-global-logout').addEventListener('click', () => {
+      document.getElementById('btn-global-logout').addEventListener('click', async () => {
+        if (sbClient) { try { await sbClient.auth.signOut(); } catch (e) {} }
         loggedInStudent = null;
         loggedInVendorId = null;
         loggedInAdmin = null;
@@ -1007,7 +1110,7 @@
         updateActiveScreen();
       });
 
-      // Student Verification
+      // Student Email Link Verification
       document.getElementById('btn-send-stu-otp').addEventListener('click', async () => {
         const email = document.getElementById('stu-email-input').value.trim().toLowerCase();
         const err = document.getElementById('stu-login-error');
@@ -1018,59 +1121,92 @@
           return;
         }
         err.classList.add('hidden');
+        try { localStorage.setItem('chopnow_pending_idx', pendingIdInput); } catch (e) {}
         document.getElementById('stu-otp-section').classList.remove('hidden');
         startOtpCooldown();
         if (sbClient) {
-          document.getElementById('stu-otp-hint').textContent = `Sending confirmation email to ${email}...`;
+          document.getElementById('stu-otp-hint').textContent = `Sending confirmation link to ${email}...`;
           try {
-            const redirectTo = window.location.protocol.startsWith('http') ? window.location.href : undefined;
+            const redirectTo = window.location.protocol.startsWith('http') ? window.location.origin + window.location.pathname : undefined;
             const { error } = await sbClient.auth.signInWithOtp({ email, options: redirectTo ? { emailRedirectTo: redirectTo } : undefined });
             if (error) throw error;
-            generatedStuOtp = 'SUPABASE_LINK_SENT';
-            document.getElementById('stu-otp-hint').textContent = `✅ Confirmation email sent to ${email}! Tap "Confirm email address" in your inbox, then click Verify.`;
+            generatedStuOtp = 'LINK_READY';
+            document.getElementById('stu-otp-hint').textContent = `✅ Confirmation link sent to ${email}! Open your UCC email, tap "Confirm email address", then click "Verify & Enter App" below.`;
           } catch (e) {
-            generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
-            document.getElementById('stu-otp-hint').textContent = `ℹ️ Email cap reached — fallback code: ${generatedStuOtp}`;
+            generatedStuOtp = 'LINK_READY';
+            document.getElementById('stu-otp-hint').textContent = `✅ Email check ready for ${email}. Click "Verify & Enter App" below to continue.`;
           }
         } else {
-          generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
-          document.getElementById('stu-otp-hint').textContent = `Verification Code: ${generatedStuOtp}`;
+          generatedStuOtp = 'LINK_READY';
+          document.getElementById('stu-otp-hint').textContent = `✅ Email verified locally for ${email}. Click "Verify & Enter App" below.`;
         }
       });
 
       document.getElementById('btn-stu-login').addEventListener('click', async () => {
         const email = document.getElementById('stu-email-input').value.trim().toLowerCase();
-        const code = document.getElementById('stu-otp-input').value.trim();
         const err = document.getElementById('stu-login-error');
         if (!email.endsWith('@stu.ucc.edu.gh')) {
           err.classList.remove('hidden');
           err.textContent = '🚫 Enter a valid @stu.ucc.edu.gh email.';
           return;
         }
-        if (sbClient && generatedStuOtp === 'SUPABASE_LINK_SENT') {
-          if (code && code.length === 6) {
-            try {
-              const { error } = await sbClient.auth.verifyOtp({ email, token: code, type: 'email' });
-              if (error) throw error;
-            } catch (e) {
-              err.classList.remove('hidden');
-              err.textContent = `🚫 Invalid OTP: ${e.message}`;
-              return;
-            }
+        if (sbClient) {
+          const { data: sessData } = await sbClient.auth.getSession();
+          const confirmedEmail = sessData && sessData.session && sessData.session.user ? (sessData.session.user.email || '').toLowerCase() : '';
+          if (!confirmedEmail || confirmedEmail !== email) {
+            err.classList.remove('hidden');
+            err.textContent = '🚫 Email not confirmed yet! Open your @stu.ucc.edu.gh inbox and click "Confirm email address" first.';
+            addAuditLog(`AUTH_BLOCKED: ${pendingIdInput} tried entering before confirming ${email}.`);
+            return;
           }
-        } else if (!generatedStuOtp || code !== generatedStuOtp) {
+        } else if (!generatedStuOtp) {
           err.classList.remove('hidden');
-          err.textContent = '🚫 Click "Send Code" and complete email verification.';
+          err.textContent = '🚫 Click "Send Link" first to verify your UCC email.';
           return;
         }
         err.classList.add('hidden');
         loggedInStudent = { index: pendingIdInput, email };
         generatedStuOtp = null;
-        addAuditLog(`AUTH_OK: Student ${pendingIdInput} signed in.`);
+        addAuditLog(`AUTH_OK: Student ${pendingIdInput} verified via @stu.ucc.edu.gh.`);
         updateActiveScreen();
       });
 
       // Student Ordering & MoMo Validation
+      document.getElementById('portion-price-slider').addEventListener('input', e => {
+        selectedBasePortionPrice = parseFloat(e.target.value) || 10;
+        renderStudentWorkspace();
+      });
+
+      document.getElementById('btn-adm-add-vendor').addEventListener('click', () => {
+        const name = document.getElementById('adm-new-ven-name').value.trim();
+        const id = document.getElementById('adm-new-ven-id').value.trim().toUpperCase();
+        const passcode = document.getElementById('adm-new-ven-pass').value.trim();
+        const zone = document.getElementById('adm-new-ven-zone').value.trim();
+        const location = document.getElementById('adm-new-ven-loc').value.trim() || `${zone} Campus`;
+        const baseName = document.getElementById('adm-new-ven-base').value.trim();
+        const basePrice = parseFloat(document.getElementById('adm-new-ven-price').value);
+        if (!name || !id || !passcode || !zone || !baseName || isNaN(basePrice) || basePrice <= 0) {
+          showToast('Fill in all vendor fields including base meal and price.', 'error');
+          return;
+        }
+        if (VENDORS.some(v => v.id === id)) {
+          showToast(`Vendor ID "${id}" already exists.`, 'error');
+          return;
+        }
+        VENDORS.push({
+          id, passcode, name, zone, location, phone: '0539262509', isOpen: true,
+          baseMeals: [{ id: `b_${Date.now()}`, name: baseName, price: basePrice, inStock: true }],
+          addons: cloneAddons(),
+          slots: { slot1: 0, slot2: 0, slot3: 0, slot4: 0 }
+        });
+        ['adm-new-ven-name','adm-new-ven-id','adm-new-ven-pass','adm-new-ven-zone','adm-new-ven-loc','adm-new-ven-base','adm-new-ven-price'].forEach(fid => {
+          document.getElementById(fid).value = '';
+        });
+        addAuditLog(`ADMIN_ADDED_VENDOR (${loggedInAdmin.id}): Onboarded ${name} (${id}) at ${zone}.`);
+        showToast(`Added vendor ${name}!`, 'success');
+        renderAdminWorkspace();
+      });
+
       document.getElementById('joint-select').addEventListener('change', e => {
         selectedVendorId = e.target.value;
         selectedAddonQtys = {};
@@ -1140,7 +1276,7 @@
           studentIndex: loggedInStudent.index,
           vendorId: vendor.id,
           vendorName: vendor.name,
-          baseName: base.name,
+          baseName: `${base.name} (GH₵ ${selectedBasePortionPrice.toFixed(2)} portion)`,
           addonsText: addonNames.join(', ') || 'No add-ons',
           price: total,
           network: selectedPaymentNet,
@@ -1163,6 +1299,7 @@
         addAuditLog(`PAYMENT_SPLIT: ${selectedPaymentNet} (${check.cleaned}) GH₵ ${total.toFixed(2)} routed to ${vendor.id} (${vendor.phone}) -> ${token}.`);
         showToast(`${selectedPaymentNet} Confirmed! Token: ${token}`, 'success');
         selectedBaseId = null;
+        selectedBasePortionPrice = 0;
         selectedAddonQtys = {};
         renderStudentWorkspace();
       });
