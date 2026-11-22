@@ -12,7 +12,74 @@
   <style>
     body { font-family: 'Inter', sans-serif; position: relative; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
-header, main, footer { position: relative; z-index: 10; }
+    header, main, footer { position: relative; z-index: 10; }
+
+    /* Modern SaaS Micro-Interactions */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes livePulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.65); opacity: 0.35; }
+    }
+    .tab-enter {
+      animation: fadeSlideUp 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .token-pop {
+      animation: popIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .live-dot {
+      position: relative;
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 9999px;
+      background-color: #86efac;
+      flex-shrink: 0;
+    }
+    .live-dot::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background-color: #4ade80;
+      animation: livePulse 1.8s ease-in-out infinite;
+    }
+    button {
+      transition: transform 140ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+    button:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .vendor-card-modern {
+      transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    }
+    .vendor-card-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px -8px rgba(15, 23, 42, 0.14);
+    }
+    .vendor-card-modern img {
+      transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .vendor-card-modern:hover img {
+      transform: scale(1.04);
+    }
+    .quick-pill {
+      transition: transform 160ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+    .quick-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px -6px rgba(30, 58, 138, 0.14);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tab-enter, .token-pop, .live-dot::after { animation: none !important; }
+      button, .vendor-card-modern, .vendor-card-modern img, .quick-pill { transition: none !important; transform: none !important; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -233,28 +300,28 @@ header, main, footer { position: relative; z-index: 10; }
 
             <!-- 4 Quick-Action Pills -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <button type="button" onclick="switchStudentTab('order')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+              <button type="button" onclick="switchStudentTab('order')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-red-50 text-[#b91c1c] flex items-center justify-center text-base">🍴</span>
                   <span class="font-extrabold text-xs text-slate-800">Browse Vendors</span>
                 </div>
                 <span class="text-slate-400 font-bold">&rarr;</span>
               </button>
-              <button type="button" onclick="switchStudentTab('order')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+              <button type="button" onclick="switchStudentTab('order')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-base">🛒</span>
                   <span class="font-extrabold text-xs text-slate-800">Build Plate</span>
                 </div>
                 <span class="text-slate-400 font-bold">&rarr;</span>
               </button>
-              <button type="button" onclick="switchStudentTab('track')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+              <button type="button" onclick="switchStudentTab('track')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center text-base">🎫</span>
                   <span class="font-extrabold text-xs text-slate-800">Track Token</span>
                 </div>
                 <span class="text-slate-400 font-bold">&rarr;</span>
               </button>
-              <button type="button" onclick="switchStudentTab('history')" class="bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left transition">
+              <button type="button" onclick="switchStudentTab('history')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-base">📜</span>
                   <span class="font-extrabold text-xs text-slate-800">My Orders</span>
@@ -813,7 +880,15 @@ header, main, footer { position: relative; z-index: 10; }
       activeStudentTab = tab;
       ['dashboard', 'order', 'track', 'history', 'feedback'].forEach(t => {
         const panel = document.getElementById('stu-tab-' + t);
-        if (panel) panel.classList.toggle('hidden', t !== tab);
+        if (panel) {
+          const hide = t !== tab;
+          panel.classList.toggle('hidden', hide);
+          if (!hide) {
+            panel.classList.remove('tab-enter');
+            void panel.offsetWidth;
+            panel.classList.add('tab-enter');
+          }
+        }
       });
       document.querySelectorAll('.stu-nav-btn').forEach(btn => {
         const isMe = btn.getAttribute('data-stu-tab') === tab;
@@ -857,21 +932,21 @@ header, main, footer { position: relative; z-index: 10; }
         VENDORS.forEach(v => {
           const minPrice = v.baseMeals && v.baseMeals.length ? Math.min(...v.baseMeals.map(b => b.price)) : 10;
           const card = document.createElement('div');
-          card.className = 'bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between';
+          card.className = 'vendor-card-modern bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between';
           card.innerHTML = `
-            <div class="relative h-36 bg-slate-100">
+            <div class="relative h-36 bg-slate-100 overflow-hidden">
               <img src="${vendorFoodImage(v)}" alt="${v.name}" class="w-full h-full object-cover" />
-              <span class="absolute top-2.5 right-2.5 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow ${v.isOpen ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">
-                ${v.isOpen ? '● Open Now' : '● Closed'}
+              <span class="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md ${v.isOpen ? 'bg-emerald-600/90 text-white' : 'bg-slate-900/80 text-slate-200'}">
+                ${v.isOpen ? '<span class="live-dot"></span><span>Open Now</span>' : '<span>Closed</span>'}
               </span>
             </div>
-            <div class="p-3.5 space-y-2.5">
-              <div>
-                <h4 class="font-extrabold text-sm text-slate-900 leading-snug">${v.name}</h4>
-                <p class="text-[11px] text-slate-500 mt-0.5">📍 ${v.zone} &bull; From <b class="text-[#b91c1c]">GH₵ ${minPrice.toFixed(2)}</b></p>
+            <div class="p-3.5 flex items-end justify-between gap-2">
+              <div class="min-w-0">
+                <h4 class="font-extrabold text-sm text-slate-900 leading-snug truncate">${v.name}</h4>
+                <p class="text-[11px] text-slate-500 mt-0.5 truncate">📍 ${v.zone} &bull; <b class="text-[#b91c1c]">GH₵ ${minPrice.toFixed(2)}+</b></p>
               </div>
-              <button type="button" data-dash-vendor="${v.id}" class="w-full py-2 rounded-xl border border-[#b91c1c] text-[#b91c1c] hover:bg-[#b91c1c] hover:text-white font-extrabold text-xs transition">
-                View Menu &rarr;
+              <button type="button" data-dash-vendor="${v.id}" class="shrink-0 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-[#b91c1c] text-[#b91c1c] hover:text-white border border-red-200 hover:border-[#b91c1c] font-extrabold text-xs">
+                Menu &rarr;
               </button>
             </div>
           `;
@@ -912,7 +987,7 @@ header, main, footer { position: relative; z-index: 10; }
                   `;
                 }).join('')}
               </div>
-              <div class="sm:col-span-5 bg-[#0f172a] text-white rounded-2xl p-4 text-center space-y-1 shadow">
+              <div class="token-pop sm:col-span-5 bg-[#0f172a] text-white rounded-2xl p-4 text-center space-y-1 shadow">
                 <div class="text-[10px] font-extrabold uppercase tracking-wider text-[#eab308]">Your Pickup Token</div>
                 <div class="text-2xl font-mono font-extrabold tracking-widest text-white">${myActive.token}</div>
                 <div class="text-[11px] text-slate-300 truncate">${myActive.vendorName}</div>
