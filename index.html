@@ -28,7 +28,15 @@
       50% { transform: scale(1.65); opacity: 0.35; }
     }
     .tab-enter {
-      animation: fadeSlideUp 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: fadeSlideUp 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .stagger-card {
+      opacity: 0;
+      animation: fadeSlideUp 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: calc(var(--i, 0) * 65ms);
+    }
+    .tracker-progress-bar {
+      transition: width 550ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .token-pop {
       animation: popIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -144,7 +152,7 @@
           <div class="flex gap-2">
             <input id="stu-email-input" type="email" placeholder="name@stu.ucc.edu.gh" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]" />
             <button id="btn-send-stu-otp" type="button" class="px-3 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold shrink-0 transition">
-              Send Link
+              Verify Email
             </button>
           </div>
         </div>
@@ -300,28 +308,28 @@
 
             <!-- 4 Quick-Action Pills -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <button type="button" onclick="switchStudentTab('order')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
+              <button type="button" onclick="switchStudentTab('order')" class="quick-pill stagger-card bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-red-50 text-[#b91c1c] flex items-center justify-center text-base">🍴</span>
                   <span class="font-extrabold text-xs text-slate-800">Browse Vendors</span>
                 </div>
                 <span class="text-slate-400 font-bold">&rarr;</span>
               </button>
-              <button type="button" onclick="switchStudentTab('order')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
+              <button type="button" onclick="switchStudentTab('order')" class="quick-pill stagger-card bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-base">🛒</span>
                   <span class="font-extrabold text-xs text-slate-800">Build Plate</span>
                 </div>
                 <span class="text-slate-400 font-bold">&rarr;</span>
               </button>
-              <button type="button" onclick="switchStudentTab('track')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
+              <button type="button" onclick="switchStudentTab('track')" class="quick-pill stagger-card bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center text-base">🎫</span>
                   <span class="font-extrabold text-xs text-slate-800">Track Token</span>
                 </div>
                 <span class="text-slate-400 font-bold">&rarr;</span>
               </button>
-              <button type="button" onclick="switchStudentTab('history')" class="quick-pill bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
+              <button type="button" onclick="switchStudentTab('history')" class="quick-pill stagger-card bg-white hover:border-[#1e3a8a] border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-2 text-left">
                 <div class="flex items-center gap-2.5">
                   <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-base">📜</span>
                   <span class="font-extrabold text-xs text-slate-800">My Orders</span>
@@ -702,10 +710,10 @@
 
     function saveLocalSession() {
       try {
-        if (loggedInStudent) localStorage.setItem('chopnow_active_session', JSON.stringify({ role: 'student', data: loggedInStudent }));
-        else if (loggedInVendorId) localStorage.setItem('chopnow_active_session', JSON.stringify({ role: 'vendor', data: loggedInVendorId }));
-        else if (loggedInAdmin) localStorage.setItem('chopnow_active_session', JSON.stringify({ role: 'admin', data: loggedInAdmin }));
-        else localStorage.removeItem('chopnow_active_session');
+        if (loggedInStudent) sessionStorage.setItem('chopnow_active_session', JSON.stringify({ role: 'student', data: loggedInStudent }));
+        else if (loggedInVendorId) sessionStorage.setItem('chopnow_active_session', JSON.stringify({ role: 'vendor', data: loggedInVendorId }));
+        else if (loggedInAdmin) sessionStorage.setItem('chopnow_active_session', JSON.stringify({ role: 'admin', data: loggedInAdmin }));
+        else sessionStorage.removeItem('chopnow_active_session');
       } catch (e) {}
     }
 
@@ -806,6 +814,47 @@
       }
     }
 
+
+    async function checkAndBindStudentProfile(indexNum, email, commitBind = false) {
+      const idx = (indexNum || '').trim().toUpperCase();
+      const em = (email || '').trim().toLowerCase();
+      if (!idx || !em) return { ok: false, error: 'Index Number and UCC email are required.' };
+
+      // Check local bindings cache first
+      let localMap = {};
+      try { localMap = JSON.parse(localStorage.getItem('chopnow_student_bindings') || '{}'); } catch (e) {}
+
+      if (sbClient) {
+        try {
+          const { data: byEmail, error: e1 } = await sbClient.from('student_profiles').select('index_number,email').eq('email', em).maybeSingle();
+          if (!e1 && byEmail && byEmail.index_number !== idx) {
+            return { ok: false, error: `🚫 This UCC email is already linked to ${byEmail.index_number}.` };
+          }
+          const { data: byIdx, error: e2 } = await sbClient.from('student_profiles').select('index_number,email').eq('index_number', idx).maybeSingle();
+          if (!e2 && byIdx && byIdx.email.toLowerCase() !== em) {
+            return { ok: false, error: `🚫 Index ${idx} is already registered to another UCC email.` };
+          }
+          if (commitBind && !e1 && !e2 && !byEmail && !byIdx) {
+            await sbClient.from('student_profiles').insert({ index_number: idx, email: em });
+          }
+        } catch (err) {}
+      }
+
+      for (const [kIdx, kEm] of Object.entries(localMap)) {
+        if (kEm === em && kIdx !== idx) {
+          return { ok: false, error: `🚫 This UCC email is already linked to ${kIdx}.` };
+        }
+        if (kIdx === idx && kEm !== em) {
+          return { ok: false, error: `🚫 Index ${idx} is already registered to another UCC email.` };
+        }
+      }
+      if (commitBind) {
+        localMap[idx] = em;
+        try { localStorage.setItem('chopnow_student_bindings', JSON.stringify(localMap)); } catch (e) {}
+      }
+      return { ok: true };
+    }
+
     function startOtpCooldown() {
       if (otpCooldownTimer) clearInterval(otpCooldownTimer);
       const btn = document.getElementById('btn-send-stu-otp');
@@ -820,7 +869,7 @@
           otpCooldownTimer = null;
           btn.disabled = false;
           btn.className = 'px-3 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold shrink-0 transition';
-          btn.textContent = 'Send Link';
+          btn.textContent = 'Verify Email';
         } else {
           btn.textContent = `Resend (${remaining}s)`;
         }
@@ -932,7 +981,8 @@
         VENDORS.forEach(v => {
           const minPrice = v.baseMeals && v.baseMeals.length ? Math.min(...v.baseMeals.map(b => b.price)) : 10;
           const card = document.createElement('div');
-          card.className = 'vendor-card-modern bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between';
+          card.style.setProperty('--i', String(VENDORS.indexOf(v)));
+          card.className = 'vendor-card-modern stagger-card bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between';
           card.innerHTML = `
             <div class="relative h-36 bg-slate-100 overflow-hidden">
               <img src="${vendorFoodImage(v)}" alt="${v.name}" class="w-full h-full object-cover" />
@@ -974,6 +1024,15 @@
           const labels = ['Order Confirmed', 'Preparing Your Food', 'Ready for Pickup', 'Collected'];
           const curIdx = Math.max(0, steps.indexOf(myActive.status));
           trackerBody.innerHTML = `
+            <div class="mb-3">
+              <div class="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
+                <span>Order Progress</span>
+                <span class="text-[#b91c1c]">${Math.round(((curIdx + 1) / 4) * 100)}%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div class="tracker-progress-bar h-full bg-gradient-to-r from-[#1e3a8a] via-[#b91c1c] to-emerald-600 rounded-full" style="width: ${((curIdx + 1) / 4) * 100}%"></div>
+              </div>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
               <div class="sm:col-span-7 space-y-2.5">
                 ${labels.map((lbl, i) => {
@@ -1515,9 +1574,10 @@
         try { window.history.replaceState(null, '', window.location.pathname + window.location.search + '#' + window.location.hash.slice(2)); } catch (e) {}
       }
 
-      // Restore session across page refresh
+      // Auto-logout on browser/app close: clear any legacy persistent session & use sessionStorage
+      try { localStorage.removeItem('chopnow_active_session'); } catch (e) {}
       try {
-        const saved = localStorage.getItem('chopnow_active_session');
+        const saved = sessionStorage.getItem('chopnow_active_session');
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed.role === 'student') loggedInStudent = parsed.data;
@@ -1528,13 +1588,27 @@
 
       if (window.supabase) {
         try {
-          sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-          sbClient.auth.onAuthStateChange((event, session) => {
+          sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true } });
+          sbClient.auth.onAuthStateChange(async (event, session) => {
             if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
               const confirmedEmail = (session.user.email || '').toLowerCase();
               if (confirmedEmail.endsWith('@stu.ucc.edu.gh') && !loggedInStudent) {
-                let savedIdx = 'UCC-STUDENT';
-                try { savedIdx = localStorage.getItem('chopnow_pending_idx') || savedIdx; } catch (e) {}
+                let savedIdx = '';
+                try { savedIdx = localStorage.getItem('chopnow_pending_idx') || ''; } catch (e) {}
+                if (!savedIdx && sbClient) {
+                  try {
+                    const { data } = await sbClient.from('student_profiles').select('index_number').eq('email', confirmedEmail).maybeSingle();
+                    if (data && data.index_number) savedIdx = data.index_number;
+                  } catch (e) {}
+                }
+                savedIdx = savedIdx || 'UCC-STUDENT';
+                const check = await checkAndBindStudentProfile(savedIdx, confirmedEmail, savedIdx !== 'UCC-STUDENT');
+                if (!check.ok) {
+                  try { await sbClient.auth.signOut(); } catch (e) {}
+                  showToast(check.error, 'error');
+                  return;
+                }
+                try { localStorage.removeItem('chopnow_pending_idx'); } catch (e) {}
                 loggedInStudent = { index: savedIdx, email: confirmedEmail };
                 updateActiveScreen();
               }
@@ -1619,19 +1693,26 @@
           addAuditLog(`AUTH_REJECTED: Blocked non-UCC email (${email || 'empty'}).`);
           return;
         }
+        const bindCheck = await checkAndBindStudentProfile(pendingIdInput, email, false);
+        if (!bindCheck.ok) {
+          err.classList.remove('hidden');
+          err.textContent = bindCheck.error;
+          addAuditLog(`AUTH_CONFLICT: ${pendingIdInput} / ${email} rejected.`);
+          return;
+        }
         err.classList.add('hidden');
         fallbackBox.classList.add('hidden');
         try { localStorage.setItem('chopnow_pending_idx', pendingIdInput); } catch (e) {}
         document.getElementById('stu-otp-section').classList.remove('hidden');
         startOtpCooldown();
         if (sbClient) {
-          document.getElementById('stu-otp-hint').textContent = `Sending confirmation link to ${email}...`;
+          document.getElementById('stu-otp-hint').textContent = `Sending verification email to ${email}...`;
           try {
             const redirectTo = window.location.protocol.startsWith('http') ? window.location.origin + window.location.pathname : undefined;
             const { error } = await sbClient.auth.signInWithOtp({ email, options: redirectTo ? { emailRedirectTo: redirectTo } : undefined });
             if (error) throw error;
             generatedStuOtp = 'LINK_MODE';
-            document.getElementById('stu-otp-hint').textContent = `✅ Confirmation link sent to ${email}! Tap "Confirm email address" in your inbox to enter the app automatically.`;
+            document.getElementById('stu-otp-hint').textContent = `✅ Verification email sent to ${email}! Tap "Verify Email" in your inbox to enter the app automatically.`;
           } catch (e) {
             generatedStuOtp = String(Math.floor(100000 + Math.random() * 900000));
             fallbackBox.classList.remove('hidden');
@@ -1657,7 +1738,7 @@
           const confirmedEmail = sessData && sessData.session && sessData.session.user ? (sessData.session.user.email || '').toLowerCase() : '';
           if (!confirmedEmail || confirmedEmail !== email) {
             err.classList.remove('hidden');
-            err.textContent = '🚫 Email not confirmed yet! Open your @stu.ucc.edu.gh inbox and click "Confirm email address" first.';
+            err.textContent = '🚫 Email not verified yet! Open your @stu.ucc.edu.gh inbox and tap "Verify Email" first.';
             addAuditLog(`AUTH_BLOCKED: ${pendingIdInput} tried entering before confirming ${email}.`);
             return;
           }
@@ -1670,9 +1751,16 @@
           }
         } else {
           err.classList.remove('hidden');
-          err.textContent = '🚫 Click "Send Link" first to verify your UCC email.';
+          err.textContent = '🚫 Tap "Verify Email" first to verify your UCC email.';
           return;
         }
+        const finalBind = await checkAndBindStudentProfile(pendingIdInput, email, true);
+        if (!finalBind.ok) {
+          err.classList.remove('hidden');
+          err.textContent = finalBind.error;
+          return;
+        }
+        try { localStorage.removeItem('chopnow_pending_idx'); } catch (e) {}
         err.classList.add('hidden');
         loggedInStudent = { index: pendingIdInput, email };
         generatedStuOtp = null;

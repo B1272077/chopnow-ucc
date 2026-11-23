@@ -94,3 +94,13 @@ create policy "Allow public all orders" on public.orders for all using (true) wi
 create policy "Allow public all pending_edits" on public.pending_vendor_edits for all using (true) with check (true);
 create policy "Allow public all feedbacks" on public.feedbacks for all using (true) with check (true);
 create policy "Allow public all audit_logs" on public.audit_logs for all using (true) with check (true);
+
+create table if not exists public.student_profiles (
+  index_number text primary key,
+  email text unique not null,
+  created_at timestamptz default now()
+);
+
+alter table public.student_profiles enable row level security;
+drop policy if exists "Allow public all student_profiles" on public.student_profiles;
+create policy "Allow public all student_profiles" on public.student_profiles for all using (true) with check (true);
