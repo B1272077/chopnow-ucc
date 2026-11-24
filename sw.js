@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chopnow-v5';
+const CACHE_NAME = 'chopnow-v6';
 const ASSETS = [
   './index.html',
   './manifest.json'

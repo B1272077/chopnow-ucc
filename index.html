@@ -1592,7 +1592,7 @@
           sbClient.auth.onAuthStateChange(async (event, session) => {
             if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
               const confirmedEmail = (session.user.email || '').toLowerCase();
-              if (confirmedEmail.endsWith('@stu.ucc.edu.gh') && !loggedInStudent) {
+              if (confirmedEmail.endsWith('@stu.ucc.edu.gh') && !loggedInStudent && !loggedInVendorId && !loggedInAdmin) {
                 let savedIdx = '';
                 try { savedIdx = localStorage.getItem('chopnow_pending_idx') || ''; } catch (e) {}
                 if (!savedIdx && sbClient) {
