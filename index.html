@@ -88,9 +88,24 @@
       .tab-enter, .token-pop, .live-dot::after { animation: none !important; }
       button, .vendor-card-modern, .vendor-card-modern img, .quick-pill { transition: none !important; transform: none !important; }
     }
+    .ui-drawer-panel { animation: fadeSlideUp 200ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+    body.ui-drawer-open { overflow: hidden; }
+    body.ui-auth-open #ui-landing { display: none; }
+    body:not(.ui-auth-open) #ui-login-card { display: none; }
+    #ui-checkout-bar.ui-bar-away { transform: translateY(150%); }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></symbol>
+    <symbol id="i-utensils" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 11v2M13 17v2"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+  </svg>
 
   <header class="bg-[#0f172a] text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
     <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
@@ -110,21 +125,109 @@
         </div>
       </div>
 
+      <nav id="ui-public-nav" class="flex items-center gap-2 shrink-0">
+        <button type="button" data-ui-scroll="ui-how" class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10">How It Works</button>
+        <button type="button" data-ui-scroll="ui-vendors" class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10">Vendors</button>
+        <button type="button" data-ui-signin class="px-3 py-1.5 rounded-xl bg-[#b91c1c] hover:bg-[#991b1b] text-white text-xs font-bold shadow whitespace-nowrap">Sign In</button>
+      </nav>
+
       <div id="header-session-controls" class="hidden flex items-center gap-2 shrink-0">
         <span id="header-role-badge" class="hidden sm:inline-flex text-xs font-bold px-3 py-1 rounded-full bg-slate-800 text-amber-300 border border-slate-700"></span>
         <button id="btn-global-logout" type="button" class="px-3 py-1.5 rounded-xl bg-[#b91c1c] hover:bg-[#991b1b] text-white text-xs font-bold transition whitespace-nowrap">
           Sign Out
         </button>
+        <button id="ui-menu-open" type="button" class="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-xl bg-slate-800 text-white hover:bg-slate-700" aria-label="Open menu">
+          <svg class="w-5 h-5"><use href="#i-menu"/></svg>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Slide-Out Drawer -->
+  <div id="ui-drawer" class="hidden fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+    <div data-drawer-close class="absolute inset-0 bg-slate-950/60 backdrop-blur-xs"></div>
+    <div class="ui-drawer-panel absolute inset-y-0 right-0 w-[82%] max-w-xs bg-[#0f172a] text-white shadow-2xl flex flex-col">
+      <div class="px-4 py-3.5 flex items-center justify-between border-b border-white/10">
+        <span class="font-extrabold text-sm tracking-tight text-[#eab308]">ChopNow UCC</span>
+        <button type="button" data-drawer-close class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:bg-white/10" aria-label="Close menu">
+          <svg class="w-5 h-5"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <div id="ui-drawer-who" class="px-4 py-3 border-b border-white/10 text-xs text-slate-300"></div>
+      <nav id="ui-drawer-nav" class="flex-1 overflow-y-auto p-3 space-y-1.5"></nav>
+      <div class="p-4 border-t border-white/10">
+        <button id="ui-drawer-logout" type="button" class="w-full py-2.5 rounded-xl bg-[#b91c1c] text-white text-xs font-bold">Sign Out</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
   <main class="max-w-7xl w-full mx-auto px-3 sm:px-4 pt-4 pb-8 flex-1">
 
-    <!-- UNIFIED SINGLE LOGIN GATEWAY -->
-    <section id="unified-login-screen" class="max-w-md mx-auto mt-4 bg-white/92 backdrop-blur-sm rounded-3xl border border-slate-200 p-6 shadow-lg space-y-5">
+    <!-- UNIFIED SINGLE LOGIN GATEWAY + PUBLIC LANDING -->
+    <section id="unified-login-screen" class="space-y-8">
+      <div id="ui-landing" class="space-y-10">
+        <!-- UCC Hero -->
+        <div class="rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white p-6 sm:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 space-y-4">
+            <span class="inline-block text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-[#eab308]/20 text-[#eab308] border border-[#eab308]/40">UCC Campus · Pre-Order &amp; Pickup</span>
+            <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">Good Food. Less Waiting. <span class="text-[#eab308]">More Living.</span></h2>
+            <p class="text-sm sm:text-base text-slate-200 max-w-xl">Pre-order your favourite UCC campus meals between lectures, pay with MTN MoMo or Telecel Cash, and collect with your CN pickup token.</p>
+            <div class="flex flex-wrap gap-3 pt-1">
+              <button type="button" data-ui-signin="order" class="px-6 py-3 rounded-xl bg-[#b91c1c] hover:bg-[#991b1b] text-white font-extrabold text-sm shadow-lg">Start Ordering &rarr;</button>
+              <button type="button" data-ui-scroll="ui-vendors" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm">Explore Vendors</button>
+            </div>
+          </div>
+          <div class="lg:col-span-5 grid grid-cols-3 grid-rows-2 gap-2.5 h-56 sm:h-72">
+            <img src="jollof.jpg" alt="Jollof Rice" class="col-span-2 row-span-2 w-full h-full object-cover rounded-2xl border border-white/15 shadow-md" />
+            <img src="waakye.jpg" alt="Waakye" class="w-full h-full object-cover rounded-2xl border border-white/15 shadow-md" />
+            <img src="friedrice.jpg" alt="Fried Rice" class="w-full h-full object-cover rounded-2xl border border-white/15 shadow-md" />
+          </div>
+        </div>
+
+        <!-- How It Works -->
+        <div id="ui-how" class="space-y-4">
+          <div>
+            <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#b91c1c]">How It Works</span>
+            <h3 class="text-2xl font-extrabold text-slate-900">Order in three simple steps</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-2">
+              <span class="inline-flex w-8 h-8 rounded-lg bg-[#0f172a] text-[#eab308] font-extrabold text-xs items-center justify-center">01</span>
+              <h4 class="font-extrabold text-base text-slate-900">Choose Your Meal</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Browse UCC campus vendors, pick your base portion (GH₵ 5 steps), and add proteins or sides.</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-2">
+              <span class="inline-flex w-8 h-8 rounded-lg bg-[#0f172a] text-[#eab308] font-extrabold text-xs items-center justify-center">02</span>
+              <h4 class="font-extrabold text-base text-slate-900">Pick Slot &amp; Pay</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Select a 15-minute lecture-break pickup window and pay via MTN MoMo or Telecel Cash.</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-2">
+              <span class="inline-flex w-8 h-8 rounded-lg bg-[#b91c1c] text-white font-extrabold text-xs items-center justify-center">03</span>
+              <h4 class="font-extrabold text-base text-slate-900">Show CN Token</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Walk straight to the fast-lane counter and collect your meal with your 4-digit CN-XXXX token.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Campus Vendors Preview -->
+        <div id="ui-vendors" class="space-y-4">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#b91c1c]">Campus Vendors</span>
+              <h3 class="text-2xl font-extrabold text-slate-900">Popular UCC Food Joints</h3>
+            </div>
+            <button type="button" data-ui-signin="order" class="text-xs font-extrabold text-[#b91c1c] hover:underline">Start Ordering &rarr;</button>
+          </div>
+          <div id="ui-landing-vendors" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- Existing Sign-In Card -->
+      <div id="ui-login-card" class="max-w-md mx-auto">
+        <button type="button" id="ui-back-home" class="mb-3 text-xs font-extrabold text-[#1e3a8a] hover:underline">&larr; Back to Home</button>
+        <div class="bg-white/95 backdrop-blur-sm rounded-3xl border border-slate-200 p-6 shadow-lg space-y-5">
       <div class="text-center space-y-1">
         <img src="icon-192.png" alt="ChopNow UCC Crest" class="w-16 h-16 mx-auto rounded-2xl shadow-md border-2 border-amber-400 object-cover" />
         <h2 class="text-xl font-extrabold text-slate-900 pt-1">Sign In to ChopNow</h2>
@@ -230,6 +333,8 @@
           <button id="btn-confirm-adm-reset" type="button" class="w-full py-2 rounded-xl bg-[#b91c1c] hover:bg-[#991b1b] text-white text-xs font-bold">Reset Password</button>
         </div>
       </div>
+      </div>
+      </div>
     </section>
 
     <!-- STUDENT WORKSPACE (UCC-Branded Modern SaaS Dashboard) -->
@@ -247,19 +352,19 @@
             </div>
             <nav class="space-y-1.5 text-xs font-bold" id="stu-desktop-nav">
               <button type="button" data-stu-tab="dashboard" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-[#b91c1c] text-white shadow transition">
-                <span>🏠</span><span>Dashboard</span>
+                <svg class="w-4 h-4 shrink-0"><use href="#i-home"/></svg><span>Dashboard</span>
               </button>
               <button type="button" data-stu-tab="order" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
-                <span>🍽️</span><span>Browse &amp; Order</span>
+                <svg class="w-4 h-4 shrink-0"><use href="#i-utensils"/></svg><span>Browse &amp; Order</span>
               </button>
               <button type="button" data-stu-tab="track" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
-                <span>📍</span><span>Track Token</span>
+                <svg class="w-4 h-4 shrink-0"><use href="#i-ticket"/></svg><span>Track Token</span>
               </button>
               <button type="button" data-stu-tab="history" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
-                <span>📜</span><span>Order History</span>
+                <svg class="w-4 h-4 shrink-0"><use href="#i-history"/></svg><span>Order History</span>
               </button>
               <button type="button" data-stu-tab="feedback" class="stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition">
-                <span>💬</span><span>Feedback</span>
+                <svg class="w-4 h-4 shrink-0"><use href="#i-message"/></svg><span>Feedback</span>
               </button>
             </nav>
           </div>
@@ -270,8 +375,8 @@
               <p class="text-[11px] text-slate-300 leading-snug">Pre-order your meal before leaving the lecture hall.</p>
               <div class="text-[10px] font-bold text-slate-400 pt-1">📍 UCC Campus</div>
             </div>
-            <button type="button" onclick="document.getElementById('btn-logout').click()" class="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition">
-              <span>🚪</span><span>Log Out</span>
+            <button type="button" onclick="document.getElementById('btn-global-logout').click()" class="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition">
+              <svg class="w-4 h-4 shrink-0"><use href="#i-logout"/></svg><span>Log Out</span>
             </button>
           </div>
         </aside>
@@ -386,7 +491,8 @@
               <div class="lg:col-span-7 bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
                 <div>
                   <label for="joint-select" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">1. Choose Campus Vendor</label>
-                  <select id="joint-select" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
+                  <select id="joint-select" data-ui-caption="ui-joint-caption" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
+                  <p id="ui-joint-caption" class="sm:hidden mt-1 text-xs font-semibold text-slate-700 leading-snug"></p>
                 </div>
 
                 <div id="joint-info-badge" class="bg-blue-50 border border-blue-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"></div>
@@ -422,7 +528,7 @@
               </div>
 
               <div class="lg:col-span-5 space-y-5">
-                <div class="bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                <div id="ui-checkout-panel" class="bg-white/95 rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 scroll-mt-20">
                   <div class="flex items-center justify-between">
                     <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">4. Pickup Window &amp; Payment</h3>
                     <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">5-Min Turnaround</span>
@@ -430,7 +536,8 @@
 
                   <div>
                     <label for="slot-select" class="block text-xs font-semibold text-slate-600 mb-1">Lecture Break Slot (Per Vendor)</label>
-                    <select id="slot-select" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
+                    <select id="slot-select" data-ui-caption="ui-slot-caption" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1e3a8a]"></select>
+                    <p id="ui-slot-caption" class="sm:hidden mt-1 text-[11px] font-medium text-slate-600 leading-snug"></p>
                   </div>
 
                   <div id="slot-capacity-status" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs"></div>
@@ -494,6 +601,26 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile Sticky Checkout Bar (Browse & Order only) -->
+      <div id="ui-checkout-bar" class="hidden xl:hidden fixed inset-x-0 bottom-16 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 shadow-lg transition-transform duration-200">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
+          <div>
+            <span class="block text-[10px] font-bold uppercase text-slate-500">Plate Total</span>
+            <span id="ui-bar-total" class="text-base font-extrabold text-[#0f172a] tabular-nums">GH₵ 0.00</span>
+          </div>
+          <button type="button" id="ui-bar-checkout" class="px-5 py-2 rounded-xl bg-[#b91c1c] text-white text-xs font-extrabold shadow">Checkout &darr;</button>
+        </div>
+      </div>
+
+      <!-- Mobile Fixed Bottom Tab Bar -->
+      <nav class="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 flex justify-around py-1.5 px-1 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]" aria-label="Mobile Student Navigation">
+        <button type="button" data-stu-tab="dashboard" class="stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-extrabold text-[#b91c1c]"><svg class="w-5 h-5"><use href="#i-home"/></svg><span>Home</span></button>
+        <button type="button" data-stu-tab="order" class="stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-semibold text-slate-500"><svg class="w-5 h-5"><use href="#i-utensils"/></svg><span>Order</span></button>
+        <button type="button" data-stu-tab="track" class="stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-semibold text-slate-500"><svg class="w-5 h-5"><use href="#i-ticket"/></svg><span>Track</span></button>
+        <button type="button" data-stu-tab="history" class="stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-semibold text-slate-500"><svg class="w-5 h-5"><use href="#i-history"/></svg><span>History</span></button>
+        <button type="button" data-stu-tab="feedback" class="stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-semibold text-slate-500"><svg class="w-5 h-5"><use href="#i-message"/></svg><span>Feedback</span></button>
+      </nav>
     </section>
 
     <!-- VENDOR WORKSPACE -->
@@ -902,6 +1029,8 @@
       venEl.classList.add('hidden');
       admEl.classList.add('hidden');
       headerCtrl.classList.add('hidden');
+      const pubNav = document.getElementById('ui-public-nav');
+      if (pubNav) pubNav.classList.add('hidden');
 
       if (loggedInStudent) {
         stuEl.classList.remove('hidden');
@@ -920,6 +1049,7 @@
         renderAdminWorkspace();
       } else {
         loginEl.classList.remove('hidden');
+        if (pubNav) pubNav.classList.remove('hidden');
       }
     }
 
@@ -946,12 +1076,18 @@
           btn.className = isMe
             ? 'stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-[#b91c1c] text-white shadow transition'
             : 'stu-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition';
+        } else if (btn.closest('nav')) {
+          btn.className = isMe
+            ? 'stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-extrabold text-[#b91c1c]'
+            : 'stu-nav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-semibold text-slate-500';
         } else {
           btn.className = isMe
             ? 'stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#b91c1c] text-white shadow'
             : 'stu-nav-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700';
         }
       });
+      const bar = document.getElementById('ui-checkout-bar');
+      if (bar) bar.classList.toggle('hidden', tab !== 'order');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1656,6 +1792,12 @@
           document.getElementById('detected-ven-id').textContent = raw;
           document.getElementById('login-step-vendor').classList.remove('hidden');
         } else {
+          const uccIndexPattern = /^[A-Z]{2,4}\/[A-Z]{2,5}\/\d{2}\/\d{3,5}$/;
+          if (!uccIndexPattern.test(raw)) {
+            err.classList.remove('hidden');
+            err.textContent = '🚫 Enter a valid UCC Index Number with slashes (e.g. PS/CSC/24/0234).';
+            return;
+          }
           document.getElementById('detected-stu-id').textContent = raw;
           document.getElementById('login-step-student').classList.remove('hidden');
         }
@@ -2062,6 +2204,151 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
     }
+  </script>
+
+  <script>
+    (function () {
+      const $ = id => document.getElementById(id);
+      let loginIntent = null;
+
+      function openSignIn(intent) {
+        loginIntent = intent === 'order' ? 'order' : null;
+        document.body.classList.add('ui-auth-open');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      function showLanding(targetId) {
+        loginIntent = null;
+        document.body.classList.remove('ui-auth-open');
+        const t = targetId && $(targetId);
+        if (t) setTimeout(() => t.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      document.addEventListener('click', e => {
+        const si = e.target.closest('[data-ui-signin]');
+        const sc = e.target.closest('[data-ui-scroll]');
+        if (si) { e.preventDefault(); openSignIn(si.getAttribute('data-ui-signin')); }
+        else if (sc) { e.preventDefault(); showLanding(sc.getAttribute('data-ui-scroll')); }
+      });
+
+      const backHome = $('ui-back-home');
+      if (backHome) backHome.addEventListener('click', () => showLanding());
+
+      const gLogout = $('btn-global-logout');
+      if (gLogout) gLogout.addEventListener('click', () => document.body.classList.remove('ui-auth-open'));
+
+      function renderLandingVendors() {
+        const box = $('ui-landing-vendors');
+        if (!box || typeof VENDORS === 'undefined') return;
+        box.innerHTML = VENDORS.map((v, i) => {
+          const minP = v.baseMeals && v.baseMeals.length ? Math.min(...v.baseMeals.map(b => b.price)) : 10;
+          return `
+            <div style="--i:${i}" class="vendor-card-modern stagger-card bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+              <div class="relative h-36 bg-slate-100 overflow-hidden">
+                <img src="${vendorFoodImage(v)}" alt="${v.name}" class="w-full h-full object-cover" />
+                <span class="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md ${v.isOpen ? 'bg-emerald-600/90 text-white' : 'bg-slate-900/80 text-slate-200'}">
+                  ${v.isOpen ? '<span class="live-dot"></span><span>Open Now</span>' : '<span>Closed</span>'}
+                </span>
+              </div>
+              <div class="p-4 flex items-end justify-between gap-2">
+                <div class="min-w-0">
+                  <h4 class="font-extrabold text-sm text-slate-900 truncate">${v.name}</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5 truncate">📍 ${v.zone} &bull; <b class="text-[#b91c1c]">GH₵ ${minP.toFixed(2)}+</b></p>
+                </div>
+                <button type="button" data-ui-vendor="${v.id}" class="shrink-0 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-[#b91c1c] text-[#b91c1c] hover:text-white border border-red-200 font-extrabold text-xs">Order &rarr;</button>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      const lv = $('ui-landing-vendors');
+      if (lv) {
+        lv.addEventListener('click', e => {
+          const b = e.target.closest('[data-ui-vendor]');
+          if (!b) return;
+          if (typeof selectedVendorId !== 'undefined') selectedVendorId = b.getAttribute('data-ui-vendor');
+          openSignIn('order');
+        });
+      }
+      window.addEventListener('load', renderLandingVendors);
+      setInterval(() => { if ($('unified-login-screen') && !$('unified-login-screen').classList.contains('hidden')) renderLandingVendors(); }, 3500);
+
+      // Navigate to Order tab if user clicked Start Ordering / vendor card before login
+      let wasOut = true;
+      if ($('unified-login-screen')) {
+        new MutationObserver(() => {
+          const isOut = !$('unified-login-screen').classList.contains('hidden');
+          if (wasOut && !isOut && $('student-workspace') && !$('student-workspace').classList.contains('hidden')) {
+            if (loginIntent === 'order') switchStudentTab('order');
+            loginIntent = null;
+          }
+          wasOut = isOut;
+        }).observe($('unified-login-screen'), { attributes: true, attributeFilter: ['class'] });
+      }
+
+      // Mobile slide-out drawer
+      const drawer = $('ui-drawer');
+      const openBtn = $('ui-menu-open');
+      if (drawer && openBtn) {
+        openBtn.addEventListener('click', () => {
+          const nav = $('ui-drawer-nav');
+          const who = $('ui-drawer-who');
+          if (who && $('header-role-badge')) who.textContent = $('header-role-badge').textContent || 'Signed In';
+          nav.innerHTML = '';
+          const addLink = (label, fn) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-slate-200 hover:bg-white/10';
+            b.textContent = label;
+            b.addEventListener('click', () => { drawer.classList.add('hidden'); document.body.classList.remove('ui-drawer-open'); fn(); });
+            nav.appendChild(b);
+          };
+          if ($('student-workspace') && !$('student-workspace').classList.contains('hidden')) {
+            [['dashboard','Dashboard'],['order','Browse & Order'],['track','Track Token'],['history','Order History'],['feedback','Feedback']].forEach(([t,l]) => addLink(l, () => switchStudentTab(t)));
+          } else {
+            addLink('Scroll to Top', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+          }
+          drawer.classList.remove('hidden');
+          document.body.classList.add('ui-drawer-open');
+        });
+        drawer.querySelectorAll('[data-drawer-close]').forEach(el => el.addEventListener('click', () => {
+          drawer.classList.add('hidden');
+          document.body.classList.remove('ui-drawer-open');
+        }));
+        if ($('ui-drawer-logout')) $('ui-drawer-logout').addEventListener('click', () => {
+          drawer.classList.add('hidden');
+          document.body.classList.remove('ui-drawer-open');
+          if (gLogout) gLogout.click();
+        });
+      }
+
+      // Sticky mobile checkout bar
+      const priceEl = $('checkout-price-display');
+      const barTotal = $('ui-bar-total');
+      const bar = $('ui-checkout-bar');
+      const panel = $('ui-checkout-panel');
+      if (priceEl && barTotal && bar && panel) {
+        const syncTotal = () => { barTotal.textContent = priceEl.textContent; };
+        new MutationObserver(syncTotal).observe(priceEl, { childList: true, characterData: true, subtree: true });
+        syncTotal();
+        $('ui-bar-checkout').addEventListener('click', () => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(entries => {
+            entries.forEach(en => bar.classList.toggle('ui-bar-away', en.isIntersecting));
+          }, { rootMargin: '0px 0px -25% 0px' }).observe(panel);
+        }
+      }
+
+      // Full-text captions for mobile selects
+      document.querySelectorAll('select[data-ui-caption]').forEach(sel => {
+        const cap = $(sel.getAttribute('data-ui-caption'));
+        if (!cap) return;
+        const syncCap = () => { const o = sel.options[sel.selectedIndex]; cap.textContent = o ? o.textContent.trim() : ''; };
+        sel.addEventListener('change', syncCap);
+        new MutationObserver(syncCap).observe(sel, { childList: true, subtree: true, attributes: true });
+        syncCap();
+      });
+    })();
   </script>
 </body>
 </html>
